@@ -4,7 +4,8 @@ import Navbar from "@/components/shared/navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -15,23 +16,48 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Book } from "lucide-react";
 
 export default function SignUp() {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [redirectUrl, setRedirectUrl] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
   const [isError, setIsError] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState("/signin");
   const router = useRouter();
+
+  useEffect(() => {
+    const cookie = Cookies.get("cookie");
+    if (cookie) {
+      router.push("/home");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (password.length < 8) {
+      setIsError(true);
+      setAlertMessage("Password must be at least 8 characters long.");
+      setShowAlert(true);
+      return;
+    }
+
+    if (/^\d+$/.test(password)) {
+      setIsError(true);
+      setAlertMessage("Password cannot consist entirely of numbers.");
+      setShowAlert(true);
+      return;
+    }
+  
     if (password !== repeatPassword) {
       setIsError(true);
       setAlertMessage("Passwords do not match");
+      setShowAlert(true);
       return;
     }
 
@@ -48,25 +74,33 @@ export default function SignUp() {
         const responseData = await response.json();
         const { url } = responseData;
 
-        setRedirectUrl(url);
+        setRedirectUrl(url || "/signin");
         setShowModal(true);
-      } else {
-        const errorData = await response.json();
-        setIsError(true);
-        setAlertMessage(errorData.error || "An error occurred during signup");
       }
+
     } catch {
-      setIsError(true);
       setAlertMessage("An unexpected error occurred. Please try again.");
+      setIsError(true);
+      setShowAlert(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
-      {isError && (
+      {showAlert && (
         <div className="fixed top-0 right-0 m-4 w-full max-w-md z-50">
-          <div className="p-4 bg-red-500 text-white rounded-md">{alertMessage}</div>
+          <Alert onClose={() => setShowAlert(false)} variant={isError ? "destructive" : "default"}>
+            <div className="flex items-center">
+              {isError ? <AlertCircle className="h-5 w-5 mr-2" /> : <Book className="h-5 w-5 mr-2" />}
+              <div>
+                <AlertTitle>{alertMessage}</AlertTitle>
+                <AlertDescription>
+                  {isError && alertMessage !== "Successfully signed in!" ? "Please check your credentials or try again." : ""}
+                </AlertDescription>
+              </div>
+            </div>
+          </Alert>
         </div>
       )}
       <div className="flex items-center justify-center flex-1">
