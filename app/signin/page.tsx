@@ -7,15 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Book, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SignIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,48 +42,27 @@ export default function SignIn() {
         if (jwt) {
           Cookies.set("cookie", jwt, { expires: 1 });
 
-          setAlertMessage("Successfully signed in!");
-          setIsError(false);
-          setShowAlert(true);
+          toast.success("Successfully signed in!");
 
           if (url) {
             setTimeout(() => {
               router.push(url);
             }, 1000);
           } else {
-            setAlertMessage("Login successful, but no redirect URL provided.");
+            toast.error("Login successful, but no redirect URL provided.");
           }
         }
       } else {
-        setAlertMessage(responseData.msg || "An error occurred");
-        setIsError(true);
-        setShowAlert(true);
+        toast.error(responseData.msg || "An error occurred");
       }
     } catch {
-      setAlertMessage("An unexpected error occurred. Please try again.");
-      setIsError(true);
-      setShowAlert(true);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
-      {showAlert && (
-        <div className="fixed top-0 right-0 m-4 w-full max-w-md z-50">
-          <Alert onClose={() => setShowAlert(false)} variant={isError ? "destructive" : "default"}>
-            <div className="flex items-center">
-              {isError ? <AlertCircle className="h-5 w-5 mr-2" /> : <Book className="h-5 w-5 mr-2" />}
-              <div>
-                <AlertTitle>{alertMessage}</AlertTitle>
-                <AlertDescription>
-                  {isError && alertMessage !== "Successfully signed in!" ? "Please check your credentials or try again." : ""}
-                </AlertDescription>
-              </div>
-            </div>
-          </Alert>
-        </div>
-      )}
       <div className="flex items-center justify-center flex-1">
         <form onSubmit={handleSubmit} className="bg-background p-8 rounded-lg shadow-md w-full max-w-md border border-gray-300">
           <h2 className="text-2xl font-bold mb-6 text-center">Login an Account</h2>

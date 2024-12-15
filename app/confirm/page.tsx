@@ -6,8 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import { Suspense } from "react";
 
-export default function ConfirmPage() {
+function ConfirmContent() {
   const [status, setStatus] = useState<"success" | "error" | "loading">("loading");
   const [message, setMessage] = useState("");
   const router = useRouter();
@@ -46,50 +47,58 @@ export default function ConfirmPage() {
   }, [code]);
 
   return (
+    <div className="flex flex-col items-center justify-center flex-1">
+      <h1 className="text-3xl font-bold mb-6">Mail Confirm</h1>
+      {status === "loading" && (
+        <p className="text-center">Processing your confirmation request...</p>
+      )}
+      {status !== "loading" && (
+        <Alert
+          variant={status === "success" ? "default" : "destructive"}
+          className="mb-6 max-w-md"
+        >
+          <div className="flex items-center">
+            {status === "success" ? (
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+            )}
+            <div>
+              <AlertTitle>{status === "success" ? "Success!" : "Error"}</AlertTitle>
+              <AlertDescription>{message}</AlertDescription>
+            </div>
+          </div>
+        </Alert>
+      )}
+      {status === "success" && (
+        <Button
+          variant="default"
+          onClick={() => router.push("/sign-in")}
+          className="w-48"
+        >
+          Go to Sign In
+        </Button>
+      )}
+      {status === "error" && (
+        <Button
+          variant="destructive"
+          onClick={() => router.push("/")}
+          className="w-48"
+        >
+          Return to Home
+        </Button>
+      )}
+    </div>
+  );
+}
+
+export default function ConfirmPage() {
+  return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
-      <div className="flex flex-col items-center justify-center flex-1">
-        <h1 className="text-3xl font-bold mb-6">Mail Confirm</h1>
-        {status === "loading" && (
-          <p className="text-center">Processing your confirmation request...</p>
-        )}
-        {status !== "loading" && (
-          <Alert
-            variant={status === "success" ? "default" : "destructive"}
-            className="mb-6 max-w-md"
-          >
-            <div className="flex items-center">
-              {status === "success" ? (
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-              )}
-              <div>
-                <AlertTitle>{status === "success" ? "Success!" : "Error"}</AlertTitle>
-                <AlertDescription>{message}</AlertDescription>
-              </div>
-            </div>
-          </Alert>
-        )}
-        {status === "success" && (
-          <Button
-            variant="default"
-            onClick={() => router.push("/login")}
-            className="w-48"
-          >
-            Go to Sign In
-          </Button>
-        )}
-        {status === "error" && (
-          <Button
-            variant="destructive"
-            onClick={() => router.push("/")}
-            className="w-48"
-          >
-            Return to Home
-          </Button>
-        )}
-      </div>
+      <Suspense fallback={<p className="text-center">Loading...</p>}>
+        <ConfirmContent />
+      </Suspense>
     </div>
   );
 }
