@@ -18,7 +18,7 @@ function ConfirmContent() {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        const response = await fetch("https://mock.coffeedev.dev/api/auth/confirm", {
+        const response = await fetch("http://localhost:8000/api/auth/confirm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),
@@ -48,7 +48,7 @@ function ConfirmContent() {
 
   return (
     <div className="flex flex-col items-center justify-center flex-1">
-      <h1 className="text-3xl font-bold mb-6">Mail Confirm</h1>
+      <h1 className="text-3xl font-bold mb-6">Account activation</h1>
       {status === "loading" && (
         <p className="text-center">Processing your confirmation request...</p>
       )}

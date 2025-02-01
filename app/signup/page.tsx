@@ -43,7 +43,7 @@ export default function SignUp() {
     }
 
     try {
-      const response = await fetch("https://mock.coffeedev.dev/api/auth/register", {
+      const response = await fetch("http://localhost:8000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export default function SignUp() {
         {showModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-black bg-opacity-50 absolute inset-0"></div>
-            <div className="bg-white p-6 rounded-lg z-10">
+            <div className="bg-black p-6 rounded-lg z-10">
               <h3 className="text-xl font-semibold">Registration Successful</h3>
               <p>A confirmation email has been sent to {mail}. Please check your inbox.</p>
               <div className="mt-4 flex justify-end">

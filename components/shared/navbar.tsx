@@ -39,7 +39,7 @@ export default function Navbar() {
     const cookie = Cookies.get("cookie");
     if (cookie) {
       try {
-        const response = await fetch("https://mock.coffeedev.dev/api/auth/logout", {
+        const response = await fetch("http://localhost:8000/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -26,7 +26,7 @@ const Home = () => {
     try {
       const cookie = Cookies.get("cookie");
 
-      const response = await fetch("https://mock.coffeedev.dev/api/home", {
+      const response = await fetch("http://localhost:8000/api/home", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${cookie}`,
@@ -56,7 +56,7 @@ const Home = () => {
     const cookie = Cookies.get("cookie");
     try {
       const response = await fetch(
-        "https://mock.coffeedev.dev/api/finishregister",
+        "http://localhost:8000/api/finishregister",
         {
           method: "POST",
           headers: {
