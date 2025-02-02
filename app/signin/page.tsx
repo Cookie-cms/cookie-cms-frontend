@@ -90,11 +90,39 @@ export default function SignIn() {
             <Button variant="default" className="w-full" type="submit">
               Sign In
             </Button>
-            <div className="w-full h-px bg-gray-300 mb-4"></div>
-            <Button variant="default" className="flex items-center justify-center p-2 w-12 h-12" type="button">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="http://localhost:3000/svg/discord.svg" alt="Discord" className="w-full h-full" />
+            <Button variant="link" className="text-sm" type="button" onClick={() => router.push("/forgetpass")}> 
+              Forget Password? 
             </Button>
+            <div className="w-full h-px bg-gray-300 mb-4"></div>
+            <Button
+            variant="default"
+            className="flex items-center justify-center p-2 w-12 h-12"
+            type="button"
+            onClick={async () => {
+              try {
+                const response = await fetch("http://localhost:8000/api/auth/discord/link");
+
+                if (response.ok) {
+                  const data = await response.json();
+                  const { url } = data;
+
+                  if (url) {
+                    window.location.href = url;
+                  } else {
+                    toast.error("No URL provided.");
+                  }
+                } else {
+                  toast.error("Failed to fetch Discord link.");
+                }
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              } catch (error) {
+                toast.error("An error occurred. Please try again.");
+              }
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="http://localhost:3000/svg/discord.svg" alt="Discord" className="w-full h-full" />
+          </Button>
           </div>
         </form>
       </div>

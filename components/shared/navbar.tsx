@@ -23,16 +23,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Navbar() {
   const [isCookieValid, setIsCookieValid] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const cookie = Cookies.get("cookie");
+    const storedUsername = Cookies.get("username");
+
     setIsCookieValid(!!cookie);
+    setUsername(storedUsername || null);
   }, []);
 
   const handleLogout = async () => {
@@ -56,7 +60,9 @@ export default function Navbar() {
     }
 
     Cookies.remove("cookie");
+    Cookies.remove("username");
     setIsCookieValid(false);
+    setUsername(null);
     setShowLogoutAlert(false);
     router.push("/");
   };
@@ -72,13 +78,13 @@ export default function Navbar() {
           {isCookieValid ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-              <Avatar>
-                <AvatarImage src="" />
-                <AvatarFallback></AvatarFallback>
-              </Avatar>
+                <Avatar>
+                  <AvatarImage src="" />
+                  <AvatarFallback>{username ? username[0].toUpperCase() : "?"}</AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{username || "Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem

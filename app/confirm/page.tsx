@@ -73,7 +73,7 @@ function ConfirmContent() {
       {status === "success" && (
         <Button
           variant="default"
-          onClick={() => router.push("/sign-in")}
+          onClick={() => router.push("/signin")}
           className="w-48"
         >
           Go to Sign In
