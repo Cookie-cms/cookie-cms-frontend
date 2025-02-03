@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 
 export default function Callback() {
   const router = useRouter();
+  const isCalled = useRef(false);
 
   useEffect(() => {
+    if (isCalled.current) return;
+    isCalled.current = true;
+
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
 
@@ -32,7 +36,7 @@ export default function Callback() {
           }
 
           if (data.data.jwt) {
-            Cookies.set("jwt", data.data.jwt, { expires: 7 });
+            Cookies.set("cookie", data.data.jwt, { expires: 1 });
           }
 
           router.push(data.url || "/home");

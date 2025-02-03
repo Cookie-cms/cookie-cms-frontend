@@ -25,7 +25,7 @@ const Home = () => {
   const fetchData = async () => {
     try {
       const cookie = Cookies.get("cookie");
-  
+
       const response = await fetch("http://localhost:8000/api/home", {
         method: "GET",
         headers: {
@@ -33,21 +33,17 @@ const Home = () => {
           "Content-Type": "application/json",
         },
       });
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch");
-      }
-  
+
       const result = await response.json();
-  
+
       if (result?.data?.Username) {
         Cookies.set("username", result.data.Username, { path: "/", expires: 1 });
       }
-  
+
       if (result.error && result.msg === "Your account is not finished") {
         setShowAlert(true);
-        setRequiresUsername(result.data?.data?.username_create || false);
-        setRequiresPassword(result.data?.data?.password_create || false);
+        setRequiresUsername(result.data?.username_create || false);
+        setRequiresPassword(result.data?.password_create || false);
       } else {
         setShowAlert(false);
       }
@@ -88,11 +84,11 @@ const Home = () => {
         window.location.href = "/";
       } else {
         toast.error("Registration failed");
-        setShowAlert(false);
+        setShowAlert(true);
       }
     } catch {
       toast.error("Registration failed");
-      setShowAlert(false);
+      setShowAlert(true);
     }
   };
 

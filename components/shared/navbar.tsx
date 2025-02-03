@@ -28,15 +28,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Navbar() {
   const [isCookieValid, setIsCookieValid] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [username, setUsername] = useState<string | null>(null);
+  const [delayedUsername, setDelayedUsername] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const cookie = Cookies.get("cookie");
-    const storedUsername = Cookies.get("username");
+    setTimeout(() => {
+      const cookie = Cookies.get("cookie");
+      const storedUsername = Cookies.get("username");
 
-    setIsCookieValid(!!cookie);
-    setUsername(storedUsername || null);
+      setIsCookieValid(!!cookie);
+      setUsername(storedUsername || null);
+
+      if (storedUsername) {
+        setTimeout(() => {
+          setDelayedUsername(storedUsername);
+        }, 1000);
+      }
+    }, 1000);
   }, []);
 
   const handleLogout = async () => {
@@ -63,6 +73,7 @@ export default function Navbar() {
     Cookies.remove("username");
     setIsCookieValid(false);
     setUsername(null);
+    setDelayedUsername(null);
     setShowLogoutAlert(false);
     router.push("/");
   };
@@ -80,11 +91,11 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Avatar>
                   <AvatarImage src="" />
-                  <AvatarFallback>{username ? username[0].toUpperCase() : "?"}</AvatarFallback>
+                  <AvatarFallback>{delayedUsername ? delayedUsername[0].toUpperCase() : "?"}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>{username || "Account"}</DropdownMenuLabel>
+                <DropdownMenuLabel>{delayedUsername || "Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem
