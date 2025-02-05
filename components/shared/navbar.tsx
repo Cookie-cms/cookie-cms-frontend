@@ -71,6 +71,8 @@ export default function Navbar() {
 
     Cookies.remove("cookie");
     Cookies.remove("username");
+    Cookies.remove("avatar");
+    Cookies.remove("userid");
     setIsCookieValid(false);
     setUsername(null);
     setDelayedUsername(null);
@@ -89,10 +91,17 @@ export default function Navbar() {
           {isCookieValid ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar>
-                  <AvatarImage src="" />
-                  <AvatarFallback>{delayedUsername ? delayedUsername[0].toUpperCase() : "?"}</AvatarFallback>
-                </Avatar>
+              <Avatar>
+                <AvatarImage 
+                  src={Cookies.get("avatar") && Cookies.get("userid") 
+                    ? `https://cdn.discordapp.com/avatars/${Cookies.get("userid")}/${Cookies.get("avatar")}?size=256`
+                    : ""
+                  } 
+                />
+                <AvatarFallback>
+                  {delayedUsername ? delayedUsername[0].toUpperCase() : "?"}
+                </AvatarFallback>
+              </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>{delayedUsername || "Account"}</DropdownMenuLabel>

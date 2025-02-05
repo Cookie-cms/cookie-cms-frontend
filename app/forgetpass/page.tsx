@@ -59,6 +59,20 @@ export default function ForgetPass() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Проверка на длину пароля
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long.");
+      return;
+    }
+
+    // Проверка, что пароль не состоит только из цифр
+    if (/^\d+$/.test(password)) {
+      toast.error("Password cannot consist entirely of numbers.");
+      return;
+    }
+
+    // Проверка на совпадение паролей
     if (!password || password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;

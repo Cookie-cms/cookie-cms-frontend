@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function SignUp() {
   const [mail, setMail] = useState("");
@@ -140,25 +141,21 @@ export default function SignUp() {
       </div>
 
       <div>
-        {showModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-black bg-opacity-50 absolute inset-0"></div>
-            <div className="bg-black p-6 rounded-lg z-10">
-              <h3 className="text-xl font-semibold">Registration Successful</h3>
-              <p>A confirmation email has been sent to {mail}. Please check your inbox.</p>
-              <div className="mt-4 flex justify-end">
-                <Button
-                  onClick={() => {
-                    setShowModal(false);
-                    router.push(redirectUrl);
-                  }}
-                >
-                  OK
-                </Button>
-              </div>
-            </div>
+      <AlertDialog open={showModal} onOpenChange={setShowModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Registration Successful</AlertDialogTitle>
+            <AlertDialogDescription>
+              A confirmation email has been sent to {mail}. Please check your inbox.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end">
+            <AlertDialogAction onClick={() => router.push(redirectUrl)}>
+              OK
+            </AlertDialogAction>
           </div>
-        )}
+        </AlertDialogContent>
+      </AlertDialog>
       </div>
     </div>
   );

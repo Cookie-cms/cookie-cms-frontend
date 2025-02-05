@@ -120,6 +120,7 @@ const Home = () => {
                 />
               </div>
             )}
+            {/* TODO: СДЕЛАЙ ДЛЯ ПОРОЛЯ ОГРАНИЧЕНИЯ */}
             {requiresPassword && (
               <div>
                 <label htmlFor="password" className="block text-sm font-medium">
