@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const [validationPassword, setValidationPassword] = useState("");
   const [isSubmittingValidation, setIsSubmittingValidation] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const isDemo = process.env.NEXT_PUBLIC_PRODUCTION === 'DEMO';
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSectionClick = (section: string) => {
@@ -73,6 +74,12 @@ export default function SettingsPage() {
   }, []);
 
   const handleEditUsername = async () => {
+
+    if (isDemo) {
+      toast.error("This feature is disabled in demo mode");
+      return;
+   }
+
     const usernameRegex = /^[A-Z][a-zA-Z0-9]*$/;
 
     if (!newUsername) {
@@ -126,6 +133,12 @@ export default function SettingsPage() {
   };
 
   const handleEditPassword = async () => {
+
+    if (isDemo) {
+      toast.error("This feature is disabled in demo mode");
+      return;
+   }
+
     if (!currentPassword || !newPassword) {
       toast.error("Please fill in all fields");
       return;
@@ -175,6 +188,12 @@ export default function SettingsPage() {
   };
 
   const handleRemoveDiscordLink = async () => {
+
+    if (isDemo) {
+      toast.error("This feature is disabled in demo mode");
+      return;
+   }
+
     if (!removeDiscordPassword) {
       toast.error("Please enter your password");
       return;
@@ -210,6 +229,12 @@ export default function SettingsPage() {
   };
 
   const handleChangeEmail = async () => {
+
+    if (isDemo) {
+      toast.error("This feature is disabled in demo mode");
+      return;
+   }
+
     if (!newEmail || !emailPassword) {
       toast.error("Please fill in all fields");
       return;
@@ -246,6 +271,12 @@ export default function SettingsPage() {
   };
 
   const handleValidateEmail = async () => {
+
+    if (isDemo) {
+      toast.error("This feature is disabled in demo mode");
+      return;
+   }
+    
     if (![validationCode, validationPassword].every(Boolean)) {
       toast.error("Please fill in all fields");
       return;
@@ -337,6 +368,7 @@ export default function SettingsPage() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
+                            disabled={isSubmitting || isDemo}
                             variant="ghost"
                             className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                           >
@@ -382,6 +414,7 @@ export default function SettingsPage() {
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="ghost"
+                            disabled={isSubmitting || isDemo}
                             className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                           >
                             Edit Password
@@ -428,6 +461,7 @@ export default function SettingsPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
+                                disabled={isSubmitting || isDemo}
                                 variant="ghost"
                                 className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                               >
@@ -470,6 +504,7 @@ export default function SettingsPage() {
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
+                                disabled={isSubmitting || isDemo}
                                 className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                               >
                                 Change Email

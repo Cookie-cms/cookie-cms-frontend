@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Navbar from "@/components/shared/navbar";
@@ -8,7 +9,6 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function SignUp() {
@@ -18,6 +18,7 @@ export default function SignUp() {
   const [showModal, setShowModal] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("/signin");
   const router = useRouter();
+  const isDemo = process.env.NEXT_PUBLIC_PRODUCTION === 'DEMO';
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -27,8 +28,32 @@ export default function SignUp() {
     }
   }, [router]);
 
+  const handleDiscordAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/discord/link`);
+      if (response.ok) {
+        const data = await response.json();
+        const { url } = data;
+        if (url) {
+          window.location.href = url;
+        } else {
+          toast.error("No URL provided.");
+        }
+      } else {
+        toast.error("Failed to fetch Discord link.");
+      }
+    } catch {
+      toast.error("An error occurred. Please try again.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isDemo) {
+      toast.error("Direct registration is disabled in demo mode. Please use Discord authentication.");
+      return;
+    }
 
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters long.");
@@ -80,6 +105,7 @@ export default function SignUp() {
               placeholder="Mail"
               value={mail}
               onChange={(e) => setMail(e.target.value)}
+              disabled={isDemo}
             />
           </div>
           <div className="mb-4">
@@ -90,6 +116,7 @@ export default function SignUp() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isDemo}
             />
           </div>
           <div className="mb-4">
@@ -100,49 +127,33 @@ export default function SignUp() {
               placeholder="Confirm Password"
               value={repeatPassword}
               onChange={(e) => setRepeatPassword(e.target.value)}
+              disabled={isDemo}
             />
           </div>
           <div className="flex justify-center">
-            <Button variant="default" className="w-full" type="submit">
+            <Button 
+              variant="default" 
+              className="w-full" 
+              type="submit"
+              disabled={isDemo}
+            >
               Sign Up
             </Button>
           </div>
           <div className="w-full h-px bg-gray-300 my-4"></div>
           <div className="flex justify-center">
-          <Button
-            variant="default"
-            className="flex items-center justify-center p-2 w-12 h-12"
-            type="button"
-            onClick={async () => {
-              try {
-                const response = await fetch(`${API_URL}/auth/discord/link`);
-
-                if (response.ok) {
-                  const data = await response.json();
-                  const { url } = data;
-
-                  if (url) {
-                    window.location.href = url;
-                  } else {
-                    toast.error("No URL provided.");
-                  }
-                } else {
-                  toast.error("Failed to fetch Discord link.");
-                }
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              } catch (error) {
-                toast.error("An error occurred. Please try again.");
-              }
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/svg/discord.svg" alt="Discord" className="w-full h-full" />
-          </Button>
+            <Button
+              variant="default"
+              className="flex items-center justify-center p-2 w-12 h-12"
+              type="button"
+              onClick={handleDiscordAuth}
+            >
+              <img src="/svg/discord.svg" alt="Discord" className="w-full h-full" />
+            </Button>
           </div>
         </form>
       </div>
 
-      <div>
       <AlertDialog open={showModal} onOpenChange={setShowModal}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -158,7 +169,6 @@ export default function SignUp() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-      </div>
     </div>
   );
 }

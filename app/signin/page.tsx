@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Navbar from "@/components/shared/navbar";
@@ -13,6 +14,7 @@ export default function SignIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const isDemo = process.env.NEXT_PUBLIC_PRODUCTION === 'DEMO';
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -22,8 +24,32 @@ export default function SignIn() {
     }
   }, [router]);
 
+  const handleDiscordAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/discord/link`);
+      if (response.ok) {
+        const data = await response.json();
+        const { url } = data;
+        if (url) {
+          window.location.href = url;
+        } else {
+          toast.error("No URL provided.");
+        }
+      } else {
+        toast.error("Failed to fetch Discord link.");
+      }
+    } catch {
+      toast.error("An error occurred. Please try again.");
+    }
+  };
+
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    
+    if (isDemo) {
+      toast.error("Direct login is disabled in demo mode. Please use Discord authentication.");
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -42,7 +68,6 @@ export default function SignIn() {
 
         if (jwt) {
           Cookies.set("cookie", jwt, { expires: 1 });
-
           toast.success("Successfully signed in!");
 
           if (url) {
@@ -75,6 +100,7 @@ export default function SignIn() {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isDemo}
             />
           </div>
           <div className="mb-4">
@@ -85,45 +111,36 @@ export default function SignIn() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isDemo}
             />
           </div>
           <div className="flex flex-col items-center space-y-4">
-            <Button variant="default" className="w-full" type="submit">
+            <Button 
+              variant="default" 
+              className="w-full" 
+              type="submit"
+              disabled={isDemo}
+            >
               Sign In
             </Button>
-            <Button variant="link" className="text-sm" type="button" onClick={() => router.push("/forgetpass")}> 
+            <Button 
+              variant="link" 
+              className="text-sm" 
+              type="button" 
+              onClick={() => router.push("/forgetpass")}
+              disabled={isDemo}
+            > 
               Forget Password? 
             </Button>
             <div className="w-full h-px bg-gray-300 mb-4"></div>
             <Button
-            variant="default"
-            className="flex items-center justify-center p-2 w-12 h-12"
-            type="button"
-            onClick={async () => {
-              try {
-                const response = await fetch(`${API_URL}/auth/discord/link`);
-
-                if (response.ok) {
-                  const data = await response.json();
-                  const { url } = data;
-
-                  if (url) {
-                    window.location.href = url;
-                  } else {
-                    toast.error("No URL provided.");
-                  }
-                } else {
-                  toast.error("Failed to fetch Discord link.");
-                }
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              } catch (error) {
-                toast.error("An error occurred. Please try again.");
-              }
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/svg/discord.svg" alt="Discord" className="w-full h-full" />
-          </Button>
+              variant="default"
+              className="flex items-center justify-center p-2 w-12 h-12"
+              type="button"
+              onClick={handleDiscordAuth}
+            >
+              <img src="/svg/discord.svg" alt="Discord" className="w-full h-full" />
+            </Button>
           </div>
         </form>
       </div>
