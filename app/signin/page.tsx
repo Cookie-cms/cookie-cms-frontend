@@ -122,7 +122,7 @@ export default function SignIn() {
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="http://localhost:3000/svg/discord.svg" alt="Discord" className="w-full h-full" />
+            <img src="/svg/discord.svg" alt="Discord" className="w-full h-full" />
           </Button>
           </div>
         </form>
