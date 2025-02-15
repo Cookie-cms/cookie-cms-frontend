@@ -64,7 +64,7 @@ export default function Callback() {
             if (jwt) {
               Cookies.set("cookie", jwt, { expires: 1 });
               Cookies.set("userid", userid, { expires: 1 });
-              Cookies.set("username", username, { expires: 1 });
+              Cookies.set("username_ds", username, { expires: 1 });
               Cookies.set("avatar", avatar, { expires: 1 });
             }
           }

@@ -114,6 +114,13 @@ export default function Navbar() {
                   >
                     Home
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      router.push("/settings");
+                    }}
+                  >
+                    Settings
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowLogoutAlert(true)}>
                     Logout
                   </DropdownMenuItem>
