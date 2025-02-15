@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Navbar from "@/components/shared/navbar";
@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function ForgetPass() {
+function ForgetPassContent() {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [codeValid, setCodeValid] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const code = searchParams.get("code");
 
   useEffect(() => {
@@ -51,8 +51,7 @@ export default function ForgetPass() {
       if (result.error) throw new Error(result.msg);
 
       toast.success("Reset link sent to your email");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       toast.error("Failed to send reset link");
     }
   };
@@ -60,19 +59,16 @@ export default function ForgetPass() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Проверка на длину пароля
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters long.");
       return;
     }
 
-    // Проверка, что пароль не состоит только из цифр
     if (/^\d+$/.test(password)) {
       toast.error("Password cannot consist entirely of numbers.");
       return;
     }
 
-    // Проверка на совпадение паролей
     if (!password || password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -90,8 +86,7 @@ export default function ForgetPass() {
 
       toast.success("Password updated successfully");
       router.push("/signin");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       toast.error("Failed to update password");
     }
   };
@@ -133,5 +128,13 @@ export default function ForgetPass() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+export default function ForgetPass() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ForgetPassContent />
+    </Suspense>
   );
 }
