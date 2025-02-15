@@ -246,15 +246,6 @@ const Home = () => {
       try {
           const cookie = Cookies.get("cookie");
 
-          // Debugging Logs (VERY IMPORTANT)
-          console.log("Before API Call:");
-          console.log("  userData.Selected_Skin:", userData.Selected_Skin);  // Make absolutely SURE this has the right value
-          console.log("  cloakId:", cloakId);
-          console.log("Request Payload:", JSON.stringify({ skinid: userData.Selected_Skin, cloakid: cloakId })); // See the full payload
-
-
-
-
           const response = await fetch("http://localhost:8000/api/home/edit/skin", {
               method: "PUT",
               headers: {
@@ -269,7 +260,6 @@ const Home = () => {
 
           if (!response.ok) {
               const errorData = await response.json();
-              console.error("API Error:", errorData); //Log API Errors
 
               throw new Error(errorData.msg || "Failed to select cape");
           }
@@ -277,8 +267,9 @@ const Home = () => {
           toast.success("Cape selected successfully");
           setShowCapesModal(false);
           fetchData();
+          window.location.reload();
+          
       } catch (error) {
-          console.error("handleSelectCape Error:", error);  // Log general errors too!
           toast.error("Failed to select cape");
       }
   };
