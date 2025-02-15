@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +25,7 @@ export default function Callback() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (isCalled.current) return;
@@ -40,7 +42,7 @@ export default function Callback() {
   
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/auth/discord/callback?code=${code}`);
+        const response = await fetch(`${API_URL}/auth/discord/callback?code=${code}`);
   
         if (response.ok) {
           const data = await response.json();
@@ -102,7 +104,7 @@ export default function Callback() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/register/discord", {
+      const response = await fetch(`${API_URL}/auth/register/discord`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +140,7 @@ export default function Callback() {
     }
   
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

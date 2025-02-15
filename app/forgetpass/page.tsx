@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
@@ -15,12 +16,13 @@ function ForgetPassContent() {
   const [codeValid, setCodeValid] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const code = searchParams.get("code");
 
   useEffect(() => {
     if (code) {
-      fetch("http://localhost:8000/api/auth/forgetpass/validate", {
+      fetch(`${API_URL}/auth/forgetpass/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
@@ -41,7 +43,7 @@ function ForgetPassContent() {
     if (!mail) return;
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/forgetpass", {
+      const response = await fetch(`${API_URL}/auth/forgetpass`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mail }),
@@ -75,7 +77,7 @@ function ForgetPassContent() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/forgetpass/update", {
+      const response = await fetch(`${API_URL}/auth/forgetpass/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, password }),

@@ -44,6 +44,7 @@ const Home = () => {
   const [skins, setSkins] = useState<Skin[]>([]);
   const [capes, setCapes] = useState<Cape[]>([]);
   const [userData, setUserData] = useState<{ Uuid?: string; Selected_Skin?: string }>({});
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleTokenExpiration = () => {
       Cookies.remove('avatar');
@@ -58,7 +59,7 @@ const Home = () => {
   const fetchData = async () => {
       try {
           const cookie = Cookies.get("cookie");
-          const response = await fetch("http://localhost:8000/api/home", {
+          const response = await fetch(`${API_URL}/home`, {
               method: "GET",
               headers: {
                   Authorization: `Bearer ${cookie}`,
@@ -91,21 +92,21 @@ const Home = () => {
 
           if (uuid) {
               try {
-                  const skinResponse = await fetch(`http://localhost:8000/api/skin/standart/${uuid}`);
+                  const skinResponse = await fetch(`${API_URL}/skin/standart/${uuid}`);
                   if (!skinResponse.ok) {
                       throw new Error('Failed to fetch skin');
                   }
-                  const skinUrl = `http://localhost:8000/api/skin/standart/${uuid}`;
+                  const skinUrl = `${API_URL}/skin/standart/${uuid}`;
 
-                  const capeResponse = await fetch(`http://localhost:8000/api/skin/standart/cape/${uuid}`);
+                  const capeResponse = await fetch(`${API_URL}skin/standart/cape/${uuid}`);
                   const capeUrl = capeResponse.ok
-                      ? `http://localhost:8000/api/skin/standart/cape/${uuid}`
+                      ? `${API_URL}/skin/standart/cape/${uuid}`
                       : undefined;
 
                   setSkinUrl(skinUrl);
                   setCapeUrl(capeUrl);
               } catch (error) {
-                  setSkinUrl('http://localhost:3000/skin/default.png');
+                  setSkinUrl(`${API_URL}/skin/default.png`);
                   setCapeUrl(undefined);
               }
           }
@@ -134,7 +135,7 @@ const Home = () => {
   const handleRegister = async () => {
       const cookie = Cookies.get("cookie");
       try {
-          const response = await fetch("http://localhost:8000/api/auth/registerfinish", {
+          const response = await fetch(`${API_URL}/auth/registerfinish`, {
               method: "POST",
               headers: {
                   Authorization: `Bearer ${cookie}`,
@@ -168,7 +169,7 @@ const Home = () => {
 
       try {
           const cookie = Cookies.get("cookie");
-          const response = await fetch("http://localhost:8000/api/home/upload", {
+          const response = await fetch(`${API_URL}/home/upload`, {
               method: "POST",
               headers: {
                   Authorization: `Bearer ${cookie}`,
@@ -191,7 +192,7 @@ const Home = () => {
 
   const handleSelectSkin = async (skinId: string, setShowSkinsModal: (value: boolean) => void) => {
       try {
-          const response = await fetch("http://localhost:8000/api/home/edit/skin/select", {
+          const response = await fetch(`${API_URL}/home/edit/skin/select`, {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -213,7 +214,7 @@ const Home = () => {
   const handleDeleteSkin = async (uuid: string) => {
       try {
           const cookie = Cookies.get("cookie");
-          const response = await fetch("http://localhost:8000/api/home/edit/skin", {
+          const response = await fetch(`${API_URL}/home/edit/skin`, {
               method: "DELETE",
               headers: {
                   Authorization: `Bearer ${cookie}`,
@@ -246,7 +247,7 @@ const Home = () => {
       try {
           const cookie = Cookies.get("cookie");
 
-          const response = await fetch("http://localhost:8000/api/home/edit/skin", {
+          const response = await fetch(`${API_URL}/home/edit/skin`, {
               method: "PUT",
               headers: {
                   "Content-Type": "application/json",
@@ -277,7 +278,7 @@ const Home = () => {
   const handleDeleteCape = async (cloakId: string) => {
       try {
           const cookie = Cookies.get("cookie");
-          const response = await fetch("http://localhost:8000/api/home/edit/cape", {
+          const response = await fetch(`${API_URL}/home/edit/cape`, {
               method: "DELETE",
               headers: {
                   Authorization: `Bearer ${cookie}`,
@@ -391,7 +392,7 @@ const Home = () => {
                           >
                               <div className="relative">
                                   <img
-                                      src={`http://localhost:8000/api/skin/body/${skin.uuid}?size=100`}
+                                      src={`${API_URL}/skin/body/${skin.uuid}?size=100`}
                                       alt={skin.name}
                                       className="w-full h-auto"
                                   />
@@ -432,7 +433,7 @@ const Home = () => {
                           >
                               <div className="relative">
                                   <img
-                                      src={`http://localhost:8000/api/skin/cloak/${cape.Id}?size=100`}
+                                      src={`${API_URL}/skin/cloak/${cape.Id}?size=100`}
                                       alt={cape.Name}
                                       className="w-full h-auto"
                                   />

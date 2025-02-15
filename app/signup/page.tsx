@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function SignUp() {
@@ -17,6 +18,7 @@ export default function SignUp() {
   const [showModal, setShowModal] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("/signin");
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const cookie = Cookies.get("cookie");
@@ -44,7 +46,7 @@ export default function SignUp() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/register", {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +115,7 @@ export default function SignUp() {
             type="button"
             onClick={async () => {
               try {
-                const response = await fetch("http://localhost:8000/api/auth/discord/link");
+                const response = await fetch(`${API_URL}/auth/discord/link`);
 
                 if (response.ok) {
                   const data = await response.json();

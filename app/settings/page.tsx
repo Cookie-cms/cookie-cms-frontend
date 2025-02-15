@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const [validationPassword, setValidationPassword] = useState("");
   const [isSubmittingValidation, setIsSubmittingValidation] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSectionClick = (section: string) => {
     setOpenSection(openSection === section ? null : section);
@@ -98,7 +99,7 @@ export default function SettingsPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("http://localhost:8000/api/home/edit/username", {
+      const response = await fetch(`${API_URL}/api/home/edit/username`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +148,7 @@ export default function SettingsPage() {
 
     setIsSubmittingPassword(true);
     try {
-      const response = await fetch("http://localhost:8000/api/home/edit/password", {
+      const response = await fetch(`${API_URL}/api/home/edit/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +183,7 @@ export default function SettingsPage() {
     setIsSubmittingRemoveDiscord(true);
     try {
       const response = await fetch(
-        "http://localhost:8000/api/home/edit/removediscord",
+        `${API_URL}/api/home/edit/removediscord`,
         {
           method: "POST",
           headers: {
@@ -216,7 +217,7 @@ export default function SettingsPage() {
 
     setIsSubmittingEmail(true);
     try {
-      const response = await fetch("http://localhost:8000/api/home/edit/mail/request", {
+      const response = await fetch(`${API_URL}/api/home/edit/mail/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -251,7 +252,7 @@ export default function SettingsPage() {
     }
     setIsSubmittingValidation(true);
     try {
-      const response = await fetch("http://localhost:8000/api/home/edit/mail/validate", {
+      const response = await fetch(`${API_URL}/api/home/edit/mail/validate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

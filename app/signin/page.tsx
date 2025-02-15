@@ -13,6 +13,7 @@ export default function SignIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const cookie = Cookies.get("cookie");
@@ -25,7 +26,7 @@ export default function SignIn() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +101,7 @@ export default function SignIn() {
             type="button"
             onClick={async () => {
               try {
-                const response = await fetch("http://localhost:8000/api/auth/discord/link");
+                const response = await fetch(`${API_URL}/auth/discord/link`);
 
                 if (response.ok) {
                   const data = await response.json();
