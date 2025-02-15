@@ -106,7 +106,7 @@ const Home = () => {
                   setSkinUrl(skinUrl);
                   setCapeUrl(capeUrl);
               } catch (error) {
-                  setSkinUrl(`${API_URL}/skin/default.png`);
+                  setSkinUrl(`/skin/default.png`);
                   setCapeUrl(undefined);
               }
           }
