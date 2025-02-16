@@ -98,7 +98,7 @@ const Home = () => {
                   }
                   const skinUrl = `${API_URL}/skin/standart/${uuid}`;
 
-                  const capeResponse = await fetch(`${API_URL}skin/standart/cape/${uuid}`);
+                  const capeResponse = await fetch(`${API_URL}/skin/standart/cape/${uuid}`);
                   const capeUrl = capeResponse.ok
                       ? `${API_URL}/skin/standart/cape/${uuid}`
                       : undefined;
