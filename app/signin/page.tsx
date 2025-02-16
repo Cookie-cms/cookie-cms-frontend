@@ -14,7 +14,7 @@ export default function SignIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-  const isDemo = process.env.NEXT_PUBLIC_PRODUCTION === 'DEMO';
+  // const isDemo = process.env.NEXT_PUBLIC_PRODUCTION === 'DEMO';
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -46,10 +46,10 @@ export default function SignIn() {
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     
-    if (isDemo) {
-      toast.error("Direct login is disabled in demo mode. Please use Discord authentication.");
-      return;
-    }
+    // if (isDemo) {
+    //   toast.error("Direct login is disabled in demo mode. Please use Discord authentication.");
+    //   return;
+    // }
 
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -100,7 +100,7 @@ export default function SignIn() {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isDemo}
+              // disabled={isDemo}
             />
           </div>
           <div className="mb-4">
@@ -111,7 +111,7 @@ export default function SignIn() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isDemo}
+              // disabled={isDemo}
             />
           </div>
           <div className="flex flex-col items-center space-y-4">
@@ -119,7 +119,7 @@ export default function SignIn() {
               variant="default" 
               className="w-full" 
               type="submit"
-              disabled={isDemo}
+              // disabled={isDemo}
             >
               Sign In
             </Button>
@@ -128,7 +128,7 @@ export default function SignIn() {
               className="text-sm" 
               type="button" 
               onClick={() => router.push("/forgetpass")}
-              disabled={isDemo}
+              // disabled={isDemo}
             > 
               Forget Password? 
             </Button>
