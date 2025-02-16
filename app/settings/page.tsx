@@ -368,7 +368,8 @@ export default function SettingsPage() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            disabled={isSubmitting || isDemo}
+                            // disabled={isSubmitting || isDemo}
+                            disabled={isSubmitting}
                             variant="ghost"
                             className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                           >
@@ -414,7 +415,8 @@ export default function SettingsPage() {
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="ghost"
-                            disabled={isSubmitting || isDemo}
+                            // disabled={isSubmitting || isDemo}
+                            disabled={isSubmitting}
                             className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                           >
                             Edit Password
@@ -461,7 +463,8 @@ export default function SettingsPage() {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
-                                disabled={isSubmitting || isDemo}
+                                // disabled={isSubmitting || isDemo}
+                                disabled={isSubmitting}
                                 variant="ghost"
                                 className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                               >
@@ -504,7 +507,8 @@ export default function SettingsPage() {
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
-                                disabled={isSubmitting || isDemo}
+                                // disabled={isSubmitting || isDemo}
+                                disabled={isSubmitting}
                                 className="w-full justify-start text-left text-sm font-normal hover:bg-accent"
                               >
                                 Change Email
