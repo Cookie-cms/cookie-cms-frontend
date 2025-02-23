@@ -64,10 +64,10 @@ export default function Callback() {
           if (data.error === false && data.data) {
             const { jwt, userid = "", username, avatar = "" } = data.data;
             if (jwt) {
-              Cookies.set("cookie", jwt, { expires: 1 });
-              Cookies.set("userid", userid, { expires: 1 });
-              Cookies.set("username_ds", username, { expires: 1 });
-              Cookies.set("avatar", avatar, { expires: 1 });
+              Cookies.set("cookiecms_cookie", jwt, { expires: 1 });
+              Cookies.set("cookiecms_userid", userid, { expires: 1 });
+              Cookies.set("cookiecms_username_ds", username, { expires: 1 });
+              Cookies.set("cookiecms_avatar", avatar, { expires: 1 });
             }
           }
   
@@ -159,9 +159,9 @@ export default function Callback() {
         const data = await response.json();
         if (data.data?.jwt) {
           Cookies.set("cookie", data.data.jwt, { expires: 1 });
-          if (data.data.userid) Cookies.set("userid", data.data.userid, { expires: 1 });
-          if (data.data.username) Cookies.set("username", data.data.username, { expires: 1 });
-          if (data.data.avatar) Cookies.set("avatar", data.data.avatar, { expires: 1 });
+          if (data.data.userid) Cookies.set("cookiecms_userid", data.data.userid, { expires: 1 });
+          if (data.data.username) Cookies.set("cookiecms_username", data.data.username, { expires: 1 });
+          if (data.data.avatar) Cookies.set("cookiecms_avatar", data.data.avatar, { expires: 1 });
         }
         toast.success("Account linked successfully");
         setIsDialogOpen(false);

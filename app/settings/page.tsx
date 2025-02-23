@@ -67,9 +67,9 @@ export default function SettingsPage() {
   ];
 
   useEffect(() => {
-    const username = Cookies.get("username") || "";
-    const username_ds = Cookies.get("username_ds") || "";
-    const avatar = Cookies.get("avatar") || "";
+    const username = Cookies.get("cookiecms_username") || "";
+    const username_ds = Cookies.get("cookiecms_username_ds") || "";
+    const avatar = Cookies.get("cookiecms_avatar") || "";
     setUserInfo({ username, username_ds, avatar, discord: username_ds });
   }, []);
 
@@ -106,11 +106,11 @@ export default function SettingsPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/api/home/edit/username`, {
+      const response = await fetch(`${API_URL}/home/edit/username`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("cookie")}`,
+          Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
         },
         body: JSON.stringify({ username: newUsername, password }),
       });
@@ -161,11 +161,11 @@ export default function SettingsPage() {
 
     setIsSubmittingPassword(true);
     try {
-      const response = await fetch(`${API_URL}/api/home/edit/password`, {
+      const response = await fetch(`${API_URL}/home/edit/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("cookie")}`,
+          Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
         },
         body: JSON.stringify({
           password: currentPassword,
@@ -202,12 +202,12 @@ export default function SettingsPage() {
     setIsSubmittingRemoveDiscord(true);
     try {
       const response = await fetch(
-        `${API_URL}/api/home/edit/removediscord`,
+        `${API_URL}/home/edit/removediscord`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("cookie")}`,
+            Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
           },
           body: JSON.stringify({ password: removeDiscordPassword }),
         }
@@ -242,11 +242,11 @@ export default function SettingsPage() {
 
     setIsSubmittingEmail(true);
     try {
-      const response = await fetch(`${API_URL}/api/home/edit/mail/request`, {
+      const response = await fetch(`${API_URL}/home/edit/mail/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("cookie")}`,
+          Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
         },
         body: JSON.stringify({
           mail: newEmail,
@@ -283,11 +283,11 @@ export default function SettingsPage() {
     }
     setIsSubmittingValidation(true);
     try {
-      const response = await fetch(`${API_URL}/api/home/edit/mail/validate`, {
+      const response = await fetch(`${API_URL}/home/edit/mail/validate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("cookie")}`,
+          Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
         },
         body: JSON.stringify({
           code: validationCode,
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                 <AvatarImage
                   src={
                     Cookies.get("avatar") && Cookies.get("userid")
-                      ? `https://cdn.discordapp.com/avatars/${Cookies.get("userid")}/${Cookies.get("avatar")}?size=256`
+                      ? `https://cdn.discordapp.com/avatars/${Cookies.get("cookiecms_userid")}/${Cookies.get("cookiecms_avatar")}?size=256`
                       : ""
                   }
                 />

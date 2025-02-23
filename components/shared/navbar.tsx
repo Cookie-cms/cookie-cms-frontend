@@ -32,11 +32,18 @@ export default function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [delayedUsername, setDelayedUsername] = useState<string | null>(null);
   const router = useRouter();
+  const permlvl = Cookies.get("cookiecms_permlvl");
+  const ADMIN_LEVEL = Number(process.env.NEXT_PUBLIC_ADMIN_LEVEL || 5);
+
 
   useEffect(() => {
+    console.log('Permission Level:', permlvl);
+    console.log('Admin Level:', ADMIN_LEVEL);
+    console.log('Comparison Result:', Number(permlvl ?? 0) >= Number(ADMIN_LEVEL));
+    
     setTimeout(() => {
-      const cookie = Cookies.get("cookie");
-      const storedUsername = Cookies.get("username");
+      const cookie = Cookies.get("cookiecms_cookie");
+      const storedUsername = Cookies.get("cookiecms_username");
 
       setIsCookieValid(!!cookie);
       setUsername(storedUsername || null);
@@ -47,10 +54,10 @@ export default function Navbar() {
         }, 1000);
       }
     }, 1000);
-  }, []);
+  }, [permlvl, ADMIN_LEVEL]);
 
   const handleLogout = async () => {
-    const cookie = Cookies.get("cookie");
+    const cookie = Cookies.get("cookiecms_cookie");
     if (cookie) {
       try {
         const response = await fetch("http://localhost:8000/api/auth/logout", {
@@ -69,10 +76,11 @@ export default function Navbar() {
       }
     }
 
-    Cookies.remove("cookie");
-    Cookies.remove("username");
-    Cookies.remove("avatar");
-    Cookies.remove("userid");
+    Cookies.remove("cookiecms_cookie");
+    Cookies.remove("cookiecms_username");
+    Cookies.remove("cookiecms_avatar");
+    Cookies.remove("cookiecms_userid");
+    Cookies.remove("cookiecms_permlvl");
     setIsCookieValid(false);
     setUsername(null);
     setDelayedUsername(null);
@@ -94,7 +102,7 @@ export default function Navbar() {
               <Avatar>
                 <AvatarImage 
                   src={Cookies.get("avatar") && Cookies.get("userid") 
-                    ? `https://cdn.discordapp.com/avatars/${Cookies.get("userid")}/${Cookies.get("avatar")}?size=256`
+                    ? `https://cdn.discordapp.com/avatars/${Cookies.get("cookiecms_userid")}/${Cookies.get("cookiecms_avatar")}?size=256`
                     : ""
                   } 
                 />
@@ -107,6 +115,11 @@ export default function Navbar() {
                 <DropdownMenuLabel>{delayedUsername || "Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
+                  {Number(permlvl ?? 0) >= Number(ADMIN_LEVEL) && (
+                    <DropdownMenuItem onClick={() => router.push("/admin")}>
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={() => {
                       router.push("/home");

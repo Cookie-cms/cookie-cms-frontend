@@ -47,18 +47,19 @@ const Home = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleTokenExpiration = () => {
-      Cookies.remove('avatar');
-      Cookies.remove('cookie');
-      Cookies.remove('userid');
-      Cookies.remove('username');
-      Cookies.remove('username_ds');
+      Cookies.remove('cookiecms_avatar');
+      Cookies.remove('cookiecms_cookie');
+      Cookies.remove('cookiecms_userid');
+      Cookies.remove('cookiecms_username');
+      Cookies.remove('cookiecms_username_ds');
+      Cookies.remove('cookiecms_permlvl');
 
       window.location.href = '/';
   };
 
   const fetchData = async () => {
       try {
-          const cookie = Cookies.get("cookie");
+          const cookie = Cookies.get("cookiecms_cookie");
           const response = await fetch(`${API_URL}/home`, {
               method: "GET",
               headers: {
@@ -74,8 +75,12 @@ const Home = () => {
           }
 
           if (result?.data?.Username) {
-              Cookies.set("username", result.data.Username, { path: "/", expires: 1 });
+              Cookies.set("cookiecms_username", result.data.Username, { path: "/", expires: 1 });
           }
+
+          if (result?.data?.PermLvl) {
+            Cookies.set("cookiecms_permlvl", result.data.PermLvl, { path: "/", expires: 1 });
+        }
 
           if (result.error && result.msg === "Your account is not finished") {
               setShowAlert(true);
@@ -124,7 +129,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-      const cookie = Cookies.get("cookie");
+      const cookie = Cookies.get("cookiecms_cookie");
       if (!cookie) {
           window.location.href = "/";
           return;
@@ -133,7 +138,7 @@ const Home = () => {
   }, []);
 
   const handleRegister = async () => {
-      const cookie = Cookies.get("cookie");
+      const cookie = Cookies.get("cookiecms_cookie");
       try {
           const response = await fetch(`${API_URL}/auth/registerfinish`, {
               method: "POST",
@@ -168,7 +173,7 @@ const Home = () => {
       formData.append("slim", slim.toString());
 
       try {
-          const cookie = Cookies.get("cookie");
+          const cookie = Cookies.get("cookiecms_cookie");
           const response = await fetch(`${API_URL}/home/upload`, {
               method: "POST",
               headers: {
@@ -196,7 +201,7 @@ const Home = () => {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${Cookies.get("cookie")}`,
+                  Authorization: `Bearer ${Cookies.get("cookiecms_cookie")}`,
               },
               body: JSON.stringify({ skinid: skinId }),
           });

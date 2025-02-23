@@ -18,7 +18,7 @@ export default function SignIn() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
-    const cookie = Cookies.get("cookie");
+    const cookie = Cookies.get("cookiecms_cookie");
     if (cookie) {
       router.push("/home");
     }
