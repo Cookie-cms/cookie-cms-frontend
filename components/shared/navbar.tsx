@@ -34,6 +34,7 @@ export default function Navbar() {
   const router = useRouter();
   const permlvl = Cookies.get("cookiecms_permlvl");
   const ADMIN_LEVEL = Number(process.env.NEXT_PUBLIC_ADMIN_LEVEL || 5);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function Navbar() {
     const cookie = Cookies.get("cookiecms_cookie");
     if (cookie) {
       try {
-        const response = await fetch("http://localhost:8000/api/auth/logout", {
+        const response = await fetch(`${API_URL}/api/auth/logout`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
