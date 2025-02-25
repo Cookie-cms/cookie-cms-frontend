@@ -9,6 +9,14 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
 
 interface AuditEntry {
   id: number;
@@ -201,7 +209,17 @@ export default function AdminAuditTable() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
     <Navbar />
-    
+    <Breadcrumb class="p-8">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/skins">Skins list</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+    </Breadcrumb>
     <div className="flex justify-end mb-4 p-2.5">
         <div className="flex items-center w-full max-w-sm space-x-2 rounded-lg border px-3.5 py-2">
           <Search className="text-gray-400" /> {/* Search icon */}

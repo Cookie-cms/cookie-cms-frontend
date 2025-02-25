@@ -218,7 +218,7 @@ const Home = () => {
 
   const handleDeleteSkin = async (uuid: string) => {
       try {
-          const cookie = Cookies.get("cookie");
+          const cookie = Cookies.get("cookiecms_cookie");
           const response = await fetch(`${API_URL}/home/edit/skin`, {
               method: "DELETE",
               headers: {
@@ -250,7 +250,7 @@ const Home = () => {
 
   const handleSelectCape = async (cloakId: string) => {
       try {
-          const cookie = Cookies.get("cookie");
+          const cookie = Cookies.get("cookiecms_cookie");
 
           const response = await fetch(`${API_URL}/home/edit/skin`, {
               method: "PUT",
@@ -282,7 +282,7 @@ const Home = () => {
 
   const handleDeleteCape = async (cloakId: string) => {
       try {
-          const cookie = Cookies.get("cookie");
+          const cookie = Cookies.get("cookiecms_cookie");
           const response = await fetch(`${API_URL}/home/edit/cape`, {
               method: "DELETE",
               headers: {

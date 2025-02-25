@@ -38,9 +38,6 @@ export default function Navbar() {
 
 
   useEffect(() => {
-    console.log('Permission Level:', permlvl);
-    console.log('Admin Level:', ADMIN_LEVEL);
-    console.log('Comparison Result:', Number(permlvl ?? 0) >= Number(ADMIN_LEVEL));
     
     setTimeout(() => {
       const cookie = Cookies.get("cookiecms_cookie");
@@ -102,7 +99,7 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
               <Avatar>
                 <AvatarImage 
-                  src={Cookies.get("avatar") && Cookies.get("userid") 
+                  src={Cookies.get("cookiecms_avatar") && Cookies.get("cookiecms_userid") 
                     ? `https://cdn.discordapp.com/avatars/${Cookies.get("cookiecms_userid")}/${Cookies.get("cookiecms_avatar")}?size=256`
                     : ""
                   } 
