@@ -1,14 +1,27 @@
 "use client";
-
-import Navbar from "@/components/shared/navbar";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, User, Mail, Shield, Key } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Navbar from "@/components/shared/navbar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface User {
   id: number;
@@ -27,6 +40,9 @@ interface User {
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalItems: number;
+  startIndex: number;
+  endIndex: number;
   onPageChange: (page: number) => void;
 }
 
@@ -36,22 +52,23 @@ export default function AdminUserTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUserData, setFilteredUserData] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       const token = Cookies.get("cookiecms_cookie");
 
       if (!token) {
-        router.push("/login");
+        toast.error("Authentication required");
+        router.push("/signin");
         return;
       }
 
       try {
+        setLoading(true);
         const response = await fetch(`${API_URL}/admin/users/`, {
           method: "GET",
           headers: {
@@ -61,13 +78,13 @@ export default function AdminUserTable() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch user data");
+          throw new Error(`Failed to fetch user data: ${response.status}`);
         }
 
         const result = await response.json();
 
         if (result.error) {
-          throw new Error("API returned error");
+          throw new Error(`API error: ${result.message || "Unknown error"}`);
         }
 
         setUserData(result.data);
@@ -85,7 +102,6 @@ export default function AdminUserTable() {
     fetchUserData();
   }, [API_URL, router]);
 
-  // Parse search term into key-value pairs
   const parseSearchTerm = (term: string) => {
     const filters: { [key: string]: string } = {};
     const parts = term.split(",");
@@ -94,38 +110,55 @@ export default function AdminUserTable() {
       const [key, value] = part.split(":").map((s) => s.trim());
       if (key && value) {
         filters[key] = value;
+      } else if (part.trim()) {
+        // If there's text without a colon, treat it as a global search
+        filters["global"] = part.trim();
       }
     });
 
     return filters;
   };
 
-  // Filter user data based on parsed search term
   const filterUserData = (data: User[], filters: { [key: string]: string }) => {
+    if (Object.keys(filters).length === 0) return data;
+  
     return data.filter((user) => {
       return Object.entries(filters).every(([key, value]) => {
+        if (key === "global") {
+          // Global search across all fields
+          return (
+            user.username.toLowerCase().includes(value.toLowerCase()) ||
+            user.id.toString().includes(value) ||
+            user.mail.toLowerCase().includes(value.toLowerCase()) ||
+            (user.uuid?.toLowerCase().includes(value.toLowerCase()) ?? false) || // Grouped with parentheses
+            (user.dsid?.toString().includes(value) ?? false) // Grouped with parentheses
+          );
+        }
+  
         switch (key) {
           case "username":
             return user.username.toLowerCase().includes(value.toLowerCase());
+          case "id":
+            return user.id.toString().includes(value);
           case "dsid":
-            return user.dsid.toString() === value;
+            return (user.dsid?.toString().includes(value) ?? false); // Grouped with parentheses
           case "mail":
+          case "email":
             return user.mail.toLowerCase().includes(value.toLowerCase());
           case "uuid":
-            return user.uuid.toLowerCase().includes(value.toLowerCase());
+            return (user.uuid?.toLowerCase().includes(value.toLowerCase()) ?? false); // Grouped with parentheses
           case "perms":
-            return user.perms.toString() === value;
+          case "permissions":
+            return user.perms.toString().includes(value);
+          case "verified":
+            return (user.mail_verify === 1) === (value.toLowerCase() === "true" || value === "1" || value.toLowerCase() === "yes");
           default:
-            return Object.values(user).some(
-              (val) =>
-                val && val.toString().toLowerCase().includes(value.toLowerCase())
-            );
+            return false;
         }
       });
     });
   };
 
-  // Update filtered data when search term changes
   useEffect(() => {
     const filters = parseSearchTerm(searchTerm);
     const filteredData = filterUserData(userData, filters);
@@ -133,51 +166,91 @@ export default function AdminUserTable() {
     setCurrentPage(1);
   }, [searchTerm, userData]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredUserData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredUserData.length);
   const currentItems = filteredUserData.slice(startIndex, endIndex);
 
-  // Handle row click to redirect to user details page
   const handleRowClick = (user: User) => {
     router.push(`/admin/user/${user.id}`);
   };
 
-  const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
-      <div>
-        <p className="text-sm text-gray-700">
-          Showing {startIndex + 1} to {Math.min(endIndex, filteredUserData.length)} of{" "}
-          {filteredUserData.length} entries
-        </p>
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
+
+  const getPermissionLabel = (perms: number): string => {
+    if (perms >= 3) return "Admin";
+    if (perms >= 2) return "HD Skins";
+    if (perms >= 1) return "User";
+    return "User";
+  };
+
+  const getPermissionColor = (perms: number): string => {
+    if (perms >= 100) return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    if (perms >= 50) return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+    if (perms >= 10) return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+  };
+
+  const Pagination = ({ currentPage, totalPages, totalItems, startIndex, endIndex, onPageChange }: PaginationProps) => (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+        <span className="font-medium">{endIndex}</span> of{" "}
+        <span className="font-medium">{totalItems}</span> entries
       </div>
-      <div className="flex space-x-2">
+      
+      <div className="flex items-center space-x-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
+          className="h-8 w-8 p-0"
+          aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
+        
         <div className="flex items-center space-x-1">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={currentPage === page ? "default" : "outline"}
-              size="sm"
-              onClick={() => onPageChange(page)}
-            >
-              {page}
-            </Button>
-          ))}
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            
+            if (pageNum <= totalPages) {
+              return (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onPageChange(pageNum)}
+                  className="h-8 w-8 p-0"
+                >
+                  {pageNum}
+                </Button>
+              );
+            }
+            return null;
+          })}
         </div>
+        
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="h-8 w-8 p-0"
+          aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -185,75 +258,173 @@ export default function AdminUserTable() {
     </div>
   );
 
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
-  if (userData.length === 0) {
-    return (
-      <div className="min-h-screen text-foreground flex flex-col p-8">
-        <Navbar />
-        <div className="text-center mt-8">No user data available</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen text-foreground flex flex-col">
+  const renderLoadingState = () => (
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-  
-      <div className="flex justify-end mb-4 p-2.5">
-        <div className="flex items-center w-full max-w-sm space-x-2 rounded-lg border px-3.5 py-2">
-          <Search className="text-gray-400" />
-          <Input
-            type="search"
-            placeholder="Search users (e.g., username:admin, dsid:123456789)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="focus:outline-none focus:ring-0 border-none w-full"
-          />
+      <div className="flex flex-1 justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-lg font-medium">Loading user data...</p>
         </div>
-      </div>
-  
-      <div className="overflow-x-auto">
-        <table className="min-w-full border">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b">ID</th>
-              <th className="py-2 px-4 border-b">Username</th>
-              <th className="py-2 px-4 border-b">DSID</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Email Verified</th>
-              <th className="py-2 px-4 border-b">UUID</th>
-              <th className="py-2 px-4 border-b">Permissions</th>
-              <th className="py-2 px-4 border-b">HWID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.map((user) => (
-              <tr
-                key={user.id}
-                className="hover:bg-gray-50 hover:text-blue-600 cursor-pointer"
-                onClick={() => handleRowClick(user)}
-              >
-                <td className="py-2 px-4 border-b">{user.id}</td>
-                <td className="py-2 px-4 border-b">{user.username}</td>
-                <td className="py-2 px-4 border-b">{user.dsid}</td>
-                <td className="py-2 px-4 border-b">{user.mail}</td>
-                <td className="py-2 px-4 border-b">{user.mail_verify ? "Yes" : "No"}</td>
-                <td className="py-2 px-4 border-b">{user.uuid}</td>
-                <td className="py-2 px-4 border-b">{user.perms}</td>
-                <td className="py-2 px-4 border-b">{user.hwidId || "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
       </div>
     </div>
   );
+
+  // const renderEmptyState = () => (
+  //   <div className="min-h-screen text-foreground flex flex-col">
+  //     <Navbar />
+  //     <div className="flex-1 flex flex-col items-center justify-center p-8">
+  //       <User className="h-16 w-16 text-gray-400 mb-4" />
+  //       <h2 className="text-2xl font-semibold mb-2">No User Data Available</h2>
+  //       <p className="text-gray-500 max-w-md text-center mb-6">
+  //         No users have been found. This could be due to an empty database or filtering criteria.
+  //       </p>
+  //       <Button onClick={() => setSearchTerm("")}>Clear Filters</Button>
+  //     </div>
+  //   </div>
+  // );
+
+  if (loading) {
+    return renderLoadingState();
+  }
+
+  // if (filteredUserData.length === 0) {
+  //   return renderEmptyState();
+  // }
+
+  return (
+    <div className="min-h-screen text-foreground flex flex-col bg-background">
+    <Navbar />
+    
+    <div className="container mx-auto px-4 py-6">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-2xl">User Management</CardTitle>
+          <CardDescription>
+            View, search, and manage user accounts in the system.
+          </CardDescription>
+        </CardHeader>
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 p-6 pt-0">
+          <div className="relative w-full sm:max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <Input
+              type="search"
+              placeholder="Search by username, email, ID, UUID, or DSID (e.g., username:admin, id:123)"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 py-2 w-full"
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <label htmlFor="per-page" className="text-sm whitespace-nowrap">
+              Show entries:
+            </label>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={handleItemsPerPageChange}
+            >
+              <SelectTrigger id="per-page" className="w-20">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-background">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">DSID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Verified</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">UUID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">HWID</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {currentItems.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    onClick={() => handleRowClick(user)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <span className="font-mono">{user.id}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="font-medium">{user.username}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
+                      {user.dsid}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center">
+                        <Mail className="h-4 w-4 text-gray-400 mr-2" />
+                        {user.mail}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge variant={user.mail_verify ? "default" : "secondary"}>
+                        {user.mail_verify ? "Yes" : "No"}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono truncate max-w-xs">
+                      {user.uuid}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Shield className="h-4 w-4 text-gray-400 mr-2" />
+                        <Badge className={getPermissionColor(user.perms)}>
+                          {getPermissionLabel(user.perms)}
+                        </Badge>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {user.hwidId ? (
+                        <div className="flex items-center">
+                          <Key className="h-4 w-4 text-gray-400 mr-2" />
+                          <span className="font-mono truncate max-w-xs">{user.hwidId}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {filteredUserData.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredUserData.length}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
 }

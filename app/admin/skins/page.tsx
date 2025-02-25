@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,11 +14,12 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogCancel,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/shared/navbar";
-import { Search, Edit, Trash } from "lucide-react";
+import { Search, Edit, Trash, Filter, RefreshCw, User, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Breadcrumb,
@@ -23,15 +27,18 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-
+} from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface Skin {
   uuid: string;
   name: string;
   ownerid: number;
-  slim: number; // 0 or 1
-  hd: number; // 0 or 1
+  slim: number; 
+  hd: number;
   cloak_id: string | null;
 }
 
@@ -40,66 +47,75 @@ export default function AdminSkins() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedSkin, setSelectedSkin] = useState<Skin | null>(null);
   const [skinFormData, setSkinFormData] = useState<Partial<Skin>>({});
+  const [activeView, setActiveView] = useState("grid");
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Fetch all skins on component mount
   useEffect(() => {
-    const fetchSkins = async () => {
-      const token = Cookies.get("cookiecms_cookie");
-
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_URL}/admin/skins`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch skins");
-        }
-
-        const result = await response.json();
-        setSkins(result.data);
-      } catch (error) {
-        console.error("Error fetching skins:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSkins();
-  }, [API_URL, router]);
+  }, []);
 
-  // Handle search
+  const fetchSkins = async () => {
+    setLoading(true);
+    const token = Cookies.get("cookiecms_cookie");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/admin/skins`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch skins");
+      }
+
+      const result = await response.json();
+      setSkins(result.data);
+    } catch (error) {
+      console.error("Error fetching skins:", error);
+      toast.error("Failed to load skins");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredSkins = skins.filter((skin) =>
     skin.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Open edit modal
   const openEditModal = (skin: Skin) => {
     setSelectedSkin(skin);
-    setSkinFormData(skin); // Initialize form data with the selected skin
+    setSkinFormData(skin);
     setIsEditModalOpen(true);
   };
 
-  // Close edit modal
+  const openDeleteModal = (skin: Skin) => {
+    setSelectedSkin(skin);
+    setIsDeleteModalOpen(true);
+  };
+
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedSkin(null);
     setSkinFormData({});
   };
 
-  // Handle input changes for skin form
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedSkin(null);
+  };
+
   const handleSkinFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setSkinFormData({
@@ -108,7 +124,6 @@ export default function AdminSkins() {
     });
   };
 
-  // Handle save changes for skin
   const handleSaveSkinChanges = async () => {
     if (!selectedSkin) return;
 
@@ -145,7 +160,6 @@ export default function AdminSkins() {
     }
   };
 
-  // Handle delete skin
   const handleDeleteSkin = async () => {
     if (!selectedSkin) return;
 
@@ -170,7 +184,7 @@ export default function AdminSkins() {
       }
 
       setSkins((prev) => prev.filter((skin) => skin.uuid !== selectedSkin.uuid));
-      closeEditModal();
+      closeDeleteModal();
       toast.success("Skin deleted successfully");
     } catch (error) {
       console.error("Error deleting skin:", error);
@@ -178,136 +192,440 @@ export default function AdminSkins() {
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
+  const renderSkeletonCards = () => {
+    return Array(8)
+      .fill(0)
+      .map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2 mt-2" />
+          </CardHeader>
+          <CardContent className="pb-2">
+            <Skeleton className="h-24 w-24 rounded-sm mb-2" />
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-8 w-16" />
+          </CardFooter>
+        </Card>
+      ));
+  };
 
   return (
-    <div className="min-h-screen text-foreground flex flex-col">
+    <div className="min-h-screen text-foreground bg-background flex flex-col">
       <Navbar />
-      <Breadcrumb class="p-8">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/skins">Skins list</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-    </Breadcrumb>
+      <div className="container mx-auto max-w-7xl">
+        <Breadcrumb className="py-4 px-4 md:px-0 mt-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="flex items-center gap-1">
+                <span>Admin</span>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin/skins" className="font-medium">
+                Skins Management
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-      <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-8">Skins list</h1>
-
-        {/* Search Bar */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-2">
-            <Search className="text-gray-400" />
-            <Input
-              type="search"
-              placeholder="Поиск скинов..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full max-w-sm"
-            />
+        <div className="flex-1 p-4 md:px-0">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Skins</h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={fetchSkins} className="gap-1">
+                <RefreshCw size={16} />
+                <span>Refresh</span>
+              </Button>
+              <Button variant="default" size="sm">
+                Upload New Skin
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Skins Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredSkins.map((skin) => (
-            <Card key={skin.uuid} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle>{skin.name}</CardTitle>
-                <CardDescription>
-                  <div className="space-y-1">
-                    <img src={`${API_URL}/skin/body/${skin.uuid}?size=100`} alt={skin.name} />
-                    <p className="text-sm">UUID: {skin.uuid}</p>
-                    <p className="text-sm">Owner: {skin.ownerid}</p>
-                    <p className="text-sm">Type: {skin.slim === 1 ? "Slim" : "Classic"}</p>
-                    <p className="text-sm">HD: {skin.hd === 1 ? "Yes" : "No"}</p>
-                    <p className="text-sm">Cape: {skin.cloak_id || "None"}</p>
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex space-x-2">
+          <Tabs defaultValue="all" className="mb-6">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+              <TabsList>
+                <TabsTrigger value="all">All Skins</TabsTrigger>
+                <TabsTrigger value="hd">HD Skins</TabsTrigger>
+                <TabsTrigger value="slim">Slim Skins</TabsTrigger>
+                <TabsTrigger value="cape">With Capes</TabsTrigger>
+              </TabsList>
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search skins..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                <div className="flex bg-muted rounded-md p-1">
                   <Button
-                    variant="outline"
+                    variant={activeView === "grid" ? "secondary" : "ghost"}
                     size="sm"
-                    onClick={() => openEditModal(skin)}
+                    className="h-8 w-8 p-0"
+                    onClick={() => setActiveView("grid")}
                   >
-                    <Edit className="h-4 w-4" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect width="7" height="7" x="3" y="3" rx="1" />
+                      <rect width="7" height="7" x="14" y="3" rx="1" />
+                      <rect width="7" height="7" x="14" y="14" rx="1" />
+                      <rect width="7" height="7" x="3" y="14" rx="1" />
+                    </svg>
                   </Button>
                   <Button
-                    variant="destructive"
+                    variant={activeView === "list" ? "secondary" : "ghost"}
                     size="sm"
-                    onClick={() => {
-                      setSelectedSkin(skin);
-                      setIsEditModalOpen(true);
-                    }}
+                    className="h-8 w-8 p-0"
+                    onClick={() => setActiveView("list")}
                   >
-                    <Trash className="h-4 w-4" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="21" x2="3" y1="6" y2="6" />
+                      <line x1="21" x2="3" y1="12" y2="12" />
+                      <line x1="21" x2="3" y1="18" y2="18" />
+                    </svg>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            </div>
+
+            <TabsContent value="all" className="mt-4">
+              {loading ? (
+                <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`}>
+                  {renderSkeletonCards()}
+                </div>
+              ) : activeView === "grid" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredSkins.length > 0 ? (
+                    filteredSkins.map((skin) => (
+                      <Card key={skin.uuid} className="overflow-hidden transition-all hover:shadow-md">
+                        <CardHeader className="p-4 pb-0">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg">{skin.name}</CardTitle>
+                              <CardDescription className="flex items-center gap-1 mt-1">
+                                <User size={14} />
+                                <span>Owner ID: {skin.ownerid}</span>
+                              </CardDescription>
+                            </div>
+                            <div className="flex gap-1">
+                              {skin.slim === 1 && (
+                                <Badge variant="outline" className="text-xs">
+                                  Slim
+                                </Badge>
+                              )}
+                              {skin.hd === 1 && (
+                                <Badge className="bg-amber-500 hover:bg-amber-600 text-xs">
+                                  HD
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-center mb-3 bg-muted/40 rounded-md p-2">
+                            <img 
+                              src={`${API_URL}/skin/body/${skin.uuid}?size=100`} 
+                              alt={skin.name} 
+                              className="max-h-32 object-contain"
+                            />
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">UUID:</span>
+                              <span className="font-mono text-xs truncate max-w-32">{skin.uuid}</span>
+                            </div>
+                            {skin.cloak_id && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Cape:</span>
+                                <span className="font-mono text-xs truncate max-w-32">{skin.cloak_id}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="p-4 pt-0 flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditModal(skin)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => openDeleteModal(skin)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="col-span-4 py-12 flex flex-col items-center justify-center text-center">
+                      <div className="bg-muted rounded-full p-3 mb-3">
+                        <Search className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-medium">No skins found</h3>
+                      <p className="text-muted-foreground mt-1 mb-4 max-w-md">
+                        We couldn&apos;t find any skins matching your search criteria. Please try a different search term.
+                      </p>
+                      <Button variant="outline" onClick={() => setSearchTerm("")}>
+                        Clear search
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-card border rounded-md overflow-hidden">
+                  <div className="grid grid-cols-12 p-3 bg-muted/50 font-medium text-sm border-b">
+                    <div className="col-span-5">Skin</div>
+                    <div className="col-span-2">Owner ID</div>
+                    <div className="col-span-2">Properties</div>
+                    <div className="col-span-2">Cape</div>
+                    <div className="col-span-1 text-right">Actions</div>
+                  </div>
+                  {filteredSkins.length > 0 ? (
+                    filteredSkins.map((skin) => (
+                      <div key={skin.uuid} className="grid grid-cols-12 p-3 items-center border-b last:border-0 hover:bg-muted/30 transition-colors">
+                        <div className="col-span-5 flex items-center gap-3">
+                          <img 
+                            src={`${API_URL}/skin/head/${skin.uuid}?size=40`} 
+                            alt={skin.name} 
+                            className="w-10 h-10"
+                          />
+                          <div>
+                            <div className="font-medium">{skin.name}</div>
+                            <div className="text-xs text-muted-foreground font-mono truncate max-w-xs">{skin.uuid}</div>
+                          </div>
+                        </div>
+                        <div className="col-span-2">{skin.ownerid}</div>
+                        <div className="col-span-2">
+                          <div className="flex flex-wrap gap-1">
+                            {skin.slim === 1 && <Badge variant="outline" className="text-xs">Slim</Badge>}
+                            {skin.hd === 1 && <Badge className="bg-amber-500 hover:bg-amber-600 text-xs">HD</Badge>}
+                          </div>
+                        </div>
+                        <div className="col-span-2 truncate font-mono text-xs">
+                          {skin.cloak_id || "—"}
+                        </div>
+                        <div className="col-span-1 flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditModal(skin)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteModal(skin)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                      <div className="bg-muted rounded-full p-3 mb-3">
+                        <Search className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-medium">No skins found</h3>
+                      <p className="text-muted-foreground mt-1 mb-4">
+                        We couldn&apos;t find any skins matching your search criteria.
+                      </p>
+                      <Button variant="outline" onClick={() => setSearchTerm("")}>
+                        Clear search
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+            
+            {/* Other tab contents would be similar but with filtered data */}
+            <TabsContent value="hd" className="mt-4">
+              {/* Similar to "all" but filtered for HD skins */}
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-6 flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredSkins.length} of {skins.length} skins
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled>
+                Next
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Edit Skin Modal */}
+      {/* Edit Modal */}
       <AlertDialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Редактировать скин</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">Edit Skin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Make changes to the skin properties below.
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="space-y-4">
-            <div className="flex flex-col space-y-1">
-              <label className="text-sm text-gray-500">Имя скина</label>
+          
+          <div className="grid gap-6 py-4">
+            {selectedSkin && (
+              <div className="flex justify-center">
+                <img 
+                  src={`${API_URL}/skin/body/${selectedSkin.uuid}?size=120`}
+                  alt={selectedSkin.name}
+                  className="max-h-40"
+                />
+              </div>
+            )}
+            
+            <div>
+              <label className="text-sm font-medium">Skin Name</label>
               <Input
                 name="name"
                 value={skinFormData.name || ""}
                 onChange={handleSkinFormChange}
+                className="mt-1"
               />
             </div>
 
-            <div className="flex flex-col space-y-1">
-              <label className="text-sm text-gray-500">Тип скина</label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  name="slim"
-                  checked={skinFormData.slim === 1}
-                  onCheckedChange={(checked) =>
-                    setSkinFormData({ ...skinFormData, slim: checked ? 1 : 0 })
-                  }
-                />
-                <span>Slim</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-1">
-              <label className="text-sm text-gray-500">HD</label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  name="hd"
-                  checked={skinFormData.hd === 1}
-                  onCheckedChange={(checked) =>
-                    setSkinFormData({ ...skinFormData, hd: checked ? 1 : 0 })
-                  }
-                />
-                <span>HD</span>
+            <Separator />
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Properties</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="slim"
+                    name="slim"
+                    checked={skinFormData.slim === 1}
+                    onCheckedChange={(checked) =>
+                      setSkinFormData({ ...skinFormData, slim: checked ? 1 : 0 })
+                    }
+                  />
+                  <label htmlFor="slim" className="text-sm">
+                    Slim model (Alex)
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="hd"
+                    name="hd"
+                    checked={skinFormData.hd === 1}
+                    onCheckedChange={(checked) =>
+                      setSkinFormData({ ...skinFormData, hd: checked ? 1 : 0 })
+                    }
+                  />
+                  <label htmlFor="hd" className="text-sm">
+                    HD texture (high resolution)
+                  </label>
+                </div>
               </div>
             </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel asChild>
-              <Button variant="outline">Отмена</Button>
+          
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel asChild className="sm:mt-0">
+              <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
             </AlertDialogCancel>
-            <Button onClick={handleSaveSkinChanges}>Сохранить</Button>
-            <Button variant="destructive" onClick={handleDeleteSkin}>
-              Удалить
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                closeEditModal();
+                openDeleteModal(selectedSkin!);
+              }}
+              className="w-full sm:w-auto"
+            >
+              Delete Skin
+            </Button>
+            <Button onClick={handleSaveSkinChanges} className="w-full sm:w-auto">
+              Save Changes
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl text-destructive">Delete Skin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this skin? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          {selectedSkin && (
+            <div className="flex items-center gap-4 py-4">
+              <img 
+                src={`${API_URL}/skin/head/${selectedSkin.uuid}?size=60`}
+                alt={selectedSkin.name}
+                className="w-16 h-16"
+              />
+              <div>
+                <h4 className="font-medium">{selectedSkin.name}</h4>
+                <p className="text-sm text-muted-foreground mt-1">UUID: {selectedSkin.uuid}</p>
+                <p className="text-sm text-muted-foreground">Owner ID: {selectedSkin.ownerid}</p>
+              </div>
+            </div>
+          )}
+          
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel asChild className="sm:mt-0">
+              <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+            </AlertDialogCancel>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteSkin}
+              className="w-full sm:w-auto"
+            >
+              Delete Permanently
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

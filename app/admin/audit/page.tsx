@@ -1,22 +1,41 @@
 "use client";
 
-import Navbar from "@/components/shared/navbar";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Clock, User, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Navbar from "@/components/shared/navbar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-
+} from "@/components/ui/breadcrumb";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AuditEntry {
   id: number;
@@ -32,6 +51,9 @@ interface AuditEntry {
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalItems: number;
+  startIndex: number;
+  endIndex: number;
   onPageChange: (page: number) => void;
 }
 
@@ -41,21 +63,23 @@ export default function AdminAuditTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredAuditData, setFilteredAuditData] = useState<AuditEntry[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  // Fetch audit data on component mount
+
   useEffect(() => {
     const fetchAuditData = async () => {
       const token = Cookies.get("cookiecms_cookie");
 
       if (!token) {
+        toast.error("Authentication required");
         router.push("/login");
         return;
       }
 
       try {
+        setLoading(true);
         const response = await fetch(`${API_URL}/admin/audit`, {
           method: "GET",
           headers: {
@@ -65,17 +89,17 @@ export default function AdminAuditTable() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch audit data");
+          throw new Error(`Failed to fetch audit data: ${response.status}`);
         }
 
         const result = await response.json();
 
         if (result.error) {
-          throw new Error("API returned error");
+          throw new Error(`API error: ${result.message || "Unknown error"}`);
         }
 
         setAuditData(result.data);
-        setFilteredAuditData(result.data); // Initialize filtered data with all data
+        setFilteredAuditData(result.data);
       } catch (error) {
         console.error("Error fetching audit data:", error);
         toast.error("Failed to load audit data");
@@ -89,7 +113,6 @@ export default function AdminAuditTable() {
     fetchAuditData();
   }, [API_URL, router]);
 
-  // Parse search term into key-value pairs
   const parseSearchTerm = (term: string) => {
     const filters: { [key: string]: string } = {};
     const parts = term.split(",");
@@ -98,178 +121,368 @@ export default function AdminAuditTable() {
       const [key, value] = part.split(":").map((s) => s.trim());
       if (key && value) {
         filters[key] = value;
+      } else if (part.trim()) {
+        // If there's text without a colon, treat it as a global search
+        filters["global"] = part.trim();
       }
     });
 
     return filters;
   };
 
-  // Filter audit data based on parsed search term
   const filterAuditData = (data: AuditEntry[], filters: { [key: string]: string }) => {
+    if (Object.keys(filters).length === 0) return data;
+
     return data.filter((audit) => {
       return Object.entries(filters).every(([key, value]) => {
+        if (key === "global") {
+          // Global search across all fields
+          return Object.values(audit).some(
+            (val) => val && val.toString().toLowerCase().includes(value.toLowerCase())
+          );
+        }
+
         switch (key) {
           case "date":
-            // Filter by date (assuming `time` is a Unix timestamp)
             const auditDate = new Date(audit.time * 1000).toISOString().split("T")[0];
             return auditDate === value;
           case "datefrom":
-            // Filter by date range (from)
             const fromDate = new Date(value).getTime() / 1000;
             return audit.time >= fromDate;
           case "dateto":
-            // Filter by date range (to)
             const toDate = new Date(value).getTime() / 1000;
             return audit.time <= toDate;
           case "iss":
-            // Filter by issuer ID
+          case "issuer":
             return audit.iss.toString() === value;
           case "target":
-            // Filter by target ID
+          case "target_id":
             return audit.target_id.toString() === value;
           case "action":
-            // Filter by action
             return audit.action.toLowerCase().includes(value.toLowerCase());
+          case "id":
+            return audit.id.toString() === value;
+          case "field":
+          case "field_changed":
+            return audit.field_changed?.toLowerCase().includes(value.toLowerCase());
           default:
-            // Fallback: search across all fields
-            return Object.values(audit).some(
-              (val) =>
-                val && val.toString().toLowerCase().includes(value.toLowerCase())
-            );
+            return false;
         }
       });
     });
   };
- // Pagination calculations
- const totalPages = Math.ceil(filteredAuditData.length / itemsPerPage);
- const startIndex = (currentPage - 1) * itemsPerPage;
- const endIndex = startIndex + itemsPerPage;
- const currentItems = filteredAuditData.slice(startIndex, endIndex);
 
- const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => (
-   <div className="flex items-center justify-between px-4 py-3 border-t">
-     <div>
-       <p className="text-sm text-gray-700">
-         Showing {startIndex + 1} to {Math.min(endIndex, filteredAuditData.length)} of{" "}
-         {filteredAuditData.length} entries
-       </p>
-     </div>
-     <div className="flex space-x-2">
-       <Button
-         variant="outline"
-         size="sm"
-         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-         disabled={currentPage === 1}
-       >
-         <ChevronLeft className="h-4 w-4" />
-       </Button>
-       <div className="flex items-center space-x-1">
-         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-           <Button
-             key={page}
-             variant={currentPage === page ? "default" : "outline"}
-             size="sm"
-             onClick={() => onPageChange(page)}
-           >
-             {page}
-           </Button>
-         ))}
-       </div>
-       <Button
-         variant="outline"
-         size="sm"
-         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-         disabled={currentPage === totalPages}
-       >
-         <ChevronRight className="h-4 w-4" />
-       </Button>
-     </div>
-   </div>
- );
-  // Update filtered data when search term changes
   useEffect(() => {
     const filters = parseSearchTerm(searchTerm);
     const filteredData = filterAuditData(auditData, filters);
     setFilteredAuditData(filteredData);
+    setCurrentPage(1);
   }, [searchTerm, auditData]);
 
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
+  const totalPages = Math.ceil(filteredAuditData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredAuditData.length);
+  const currentItems = filteredAuditData.slice(startIndex, endIndex);
 
-  if (auditData.length === 0) {
-    return (
-      <div className="min-h-screen text-foreground flex flex-col p-8">
-        <Navbar />
-        <div className="text-center mt-8">No audit data available</div>
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
+
+  const getActionBadgeColor = (action: string): string => {
+    action = action.toLowerCase();
+    if (action.includes("create") || action.includes("add")) 
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    if (action.includes("delete") || action.includes("remove")) 
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    if (action.includes("update") || action.includes("edit") || action.includes("modify")) 
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    if (action.includes("login") || action.includes("auth")) 
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+  };
+
+  // Format timestamp to a readable date/time
+  const formatTimestamp = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000);
+    return new Intl.DateTimeFormat('default', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(date);
+  };
+
+  const getFieldDescription = (field: string | null): string => {
+    if (!field) return "N/A";
+    
+    // Truncate long fields for display
+    if (field.length > 30) {
+      return field.substring(0, 27) + "...";
+    }
+    return field;
+  };
+
+  const Pagination = ({ currentPage, totalPages, totalItems, startIndex, endIndex, onPageChange }: PaginationProps) => (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+        <span className="font-medium">{endIndex}</span> of{" "}
+        <span className="font-medium">{totalItems}</span> entries
       </div>
-    );
+      
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="h-8 w-8 p-0"
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div className="flex items-center space-x-1">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            
+            if (pageNum <= totalPages) {
+              return (
+                <Button
+                  key={pageNum}
+                  variant={currentPage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onPageChange(pageNum)}
+                  className="h-8 w-8 p-0"
+                >
+                  {pageNum}
+                </Button>
+              );
+            }
+            return null;
+          })}
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="h-8 w-8 p-0"
+          aria-label="Next page"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderLoadingState = () => (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex flex-1 justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-lg font-medium">Loading audit data...</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return renderLoadingState();
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-    <Navbar />
-    <Breadcrumb class="p-8">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/skins">Skins list</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-    </Breadcrumb>
-    <div className="flex justify-end mb-4 p-2.5">
-        <div className="flex items-center w-full max-w-sm space-x-2 rounded-lg border px-3.5 py-2">
-          <Search className="text-gray-400" /> {/* Search icon */}
-          <Input
-            type="search"
-            placeholder="Search logs (e.g., date:2023-10-01, iss:34, target:123)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="focus:outline-none focus:ring-0 border-none w-full"
-          />
-        </div>
+    <div className="min-h-screen text-foreground flex flex-col bg-background">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-6">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin" className="flex items-center">
+                Admin
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin/audit" className="flex items-center">
+                Audit Logs
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl">Audit Logs</CardTitle>
+            <CardDescription>
+              View and search system activity logs to track changes and actions.
+            </CardDescription>
+          </CardHeader>
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 p-6 pt-0">
+            <div className="relative w-full sm:max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <Input
+                type="search"
+                placeholder="Search by ID, issuer, action or use filters (e.g., date:2023-10-01)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 py-2 w-full"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <label htmlFor="per-page" className="text-sm whitespace-nowrap">
+                Show entries:
+              </label>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={handleItemsPerPageChange}
+              >
+                <SelectTrigger id="per-page" className="w-20">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-background">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Issuer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Target</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Field Changed</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Value Change</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {currentItems.map((audit) => (
+                    <tr
+                      key={audit.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span className="font-mono">{audit.id}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 text-gray-400 mr-2" />
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                {audit.iss}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>User ID: {audit.iss}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge className={getActionBadgeColor(audit.action)}>
+                          {audit.action}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center">
+                          <Target className="h-4 w-4 text-gray-400 mr-2" />
+                          <span>{audit.target_id}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {audit.field_changed ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="max-w-xs truncate block">
+                                {getFieldDescription(audit.field_changed)}
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>{audit.field_changed}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {audit.old_value !== null || audit.new_value !== null ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="inline-flex items-center">
+                                <span className="text-gray-500 line-through mr-2 max-w-[60px] truncate inline-block">
+                                  {audit.old_value || "—"}
+                                </span>
+                                <span className="text-green-600 font-medium max-w-[60px] truncate inline-block">
+                                  {audit.new_value || "—"}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <div className="space-y-1 p-1">
+                                  <p><strong>Old:</strong> {audit.old_value || "None"}</p>
+                                  <p><strong>New:</strong> {audit.new_value || "None"}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-gray-400">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 text-gray-400 mr-2" />
+                          <span>{formatTimestamp(audit.time)}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {filteredAuditData.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredAuditData.length}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-    <div className="overflow-x-auto">
-      <table className="min-w-full border">
-        <thead>
-          <tr>
-          <th className="py-2 px-4 border-b">ID</th>
-            <th className="py-2 px-4 border-b">Issuer ID (iss:)</th>
-            <th className="py-2 px-4 border-b">Action (action:)</th>
-            <th className="py-2 px-4 border-b">Target ID (target:)</th>
-            <th className="py-2 px-4 border-b">Old Value</th>
-            <th className="py-2 px-4 border-b">New Value</th>
-            <th className="py-2 px-4 border-b">Field Changed</th>
-            <th className="py-2 px-4 border-b">Time (date:, datefrom:, dateto:)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((audit) => (
-            <tr key={audit.id} className="hover:bg-gray-50 hover:text-blue-600">
-              <td className="py-2 px-4 border-b">{audit.id}</td>
-              <td className="py-2 px-4 border-b">{audit.iss}</td>
-              <td className="py-2 px-4 border-b">{audit.action}</td>
-              <td className="py-2 px-4 border-b">{audit.target_id}</td>
-              <td className="py-2 px-4 border-b">{audit.old_value || "N/A"}</td>
-              <td className="py-2 px-4 border-b">{audit.new_value || "N/A"}</td>
-              <td className="py-2 px-4 border-b">{audit.field_changed || "N/A"}</td>
-              <td className="py-2 px-4 border-b">
-                {new Date(audit.time * 1000).toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
     </div>
-  </div>
-);
+  );
 }

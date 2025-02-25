@@ -387,91 +387,103 @@ const Home = () => {
           </AlertDialog>
 
           <AlertDialog open={showSkinsModal} onOpenChange={setShowSkinsModal}>
-              <AlertDialogContent className="max-w-4xl">
-                  <AlertDialogTitle>Select a Skin</AlertDialogTitle>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                      {skins.map((skin) => (
-                          <div
-                              key={skin.uuid}
-                              className="bg-background rounded-lg overflow-hidden border-2 border-gray-700 hover:border-gray-500 transition-colors"
-                          >
-                              <div className="relative">
-                                  <img
-                                      src={`${API_URL}/skin/body/${skin.uuid}?size=100`}
-                                      alt={skin.name}
-                                      className="w-full h-auto"
-                                  />
-                              </div>
-                              <div className="p-3 text-center bg-background">
-                                  <p className="text-sm text-gray-300 truncate">{skin.name}</p>
-                                  <div className="mt-2 flex gap-2 justify-center p-2 border-2 border-gray-700 rounded-lg mx-2 mb-2">
-                                      <Button
-                                          size="sm"
-                                          className="default"
-                                          onClick={() => handleSelectSkin(skin.uuid, setShowSkinsModal)}
-                                      >
-                                          Select
-                                      </Button>
-                                      <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() => handleDeleteSkin(skin.uuid)}
-                                      >
-                                          Delete
-                                      </Button>
-                                  </div>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
-              </AlertDialogContent>
-          </AlertDialog>
+            <AlertDialogContent className="max-w-4xl">
+                <AlertDialogTitle>Select a Skin</AlertDialogTitle>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                    {skins.length > 0 ? (
+                        skins.map((skin) => (
+                        <div
+                            key={skin.uuid}
+                            className="bg-background rounded-lg overflow-hidden border-2 border-gray-700 hover:border-gray-500 transition-colors"
+                        >
+                            <div className="relative">
+                            <img
+                                src={`${API_URL}/skin/body/${skin.uuid}?size=100`}
+                                alt={skin.name}
+                                className="w-full h-auto"
+                            />
+                            </div>
+                            <div className="p-3 text-center bg-background">
+                            <p className="text-sm text-gray-300 truncate">{skin.name}</p>
+                            <div className="mt-2 flex gap-2 justify-center p-2 border-2 border-gray-700 rounded-lg mx-2 mb-2">
+                                <Button
+                                size="sm"
+                                className="default"
+                                onClick={() => handleSelectSkin(skin.uuid, setShowSkinsModal)}
+                                >
+                                Select
+                                </Button>
+                                <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteSkin(skin.uuid)}
+                                >
+                                Delete
+                                </Button>
+                            </div>
+                            </div>
+                        </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-6">
+                        <p className="text-gray-400">No skins available</p>
+                        </div>
+                    )}
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
 
-          <AlertDialog open={showCapesModal} onOpenChange={setShowCapesModal}>
-              <AlertDialogContent className="max-w-4xl">
-                  <AlertDialogTitle>Select a Cape</AlertDialogTitle>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                      {capes.map((cape) => (
-                          <div
-                              key={cape.Id}
-                              className="bg-background rounded-lg overflow-hidden border-2 border-gray-700 hover:border-gray-500 transition-colors"
-                          >
-                              <div className="relative">
-                                  <img
-                                      src={`${API_URL}/skin/cloak/${cape.Id}?size=100`}
-                                      alt={cape.Name}
-                                      className="w-full h-auto"
-                                  />
-                              </div>
-                              <div className="p-3 text-center bg-background">
-                                  <p className="text-sm text-gray-300 truncate">{cape.Name}</p>
-                                  <div className="mt-2 flex gap-2 justify-center p-2 border-2 border-gray-700 rounded-lg mx-2 mb-2">
-                                      <Button
-                                          size="sm"
-                                          className="default"
-                                          onClick={() => handleSelectCape(cape.Id)}
-                                      >
-                                          Select
-                                      </Button>
-                                      <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() => {
-                                              setShowCapesModal(false);
-                                              toast.success("Cape deletion functionality coming soon");
-                                          }}
-                                      >
-                                          Delete
-                                      </Button>
-                                  </div>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
-              </AlertDialogContent>
-          </AlertDialog>
+            <AlertDialog open={showCapesModal} onOpenChange={setShowCapesModal}>
+                <AlertDialogContent className="max-w-4xl">
+                    <AlertDialogTitle>Select a Cape</AlertDialogTitle>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                    {capes.length > 0 ? (
+                        capes.map((cape) => (
+                        <div
+                            key={cape.Id}
+                            className="bg-background rounded-lg overflow-hidden border-2 border-gray-700 hover:border-gray-500 transition-colors"
+                        >
+                            <div className="relative">
+                            <img
+                                src={`${API_URL}/skin/cloak/${cape.Id}?size=100`}
+                                alt={cape.Name}
+                                className="w-full h-auto"
+                            />
+                            </div>
+                            <div className="p-3 text-center bg-background">
+                            <p className="text-sm text-gray-300 truncate">{cape.Name}</p>
+                            <div className="mt-2 flex gap-2 justify-center p-2 border-2 border-gray-700 rounded-lg mx-2 mb-2">
+                                <Button
+                                size="sm"
+                                className="default"
+                                onClick={() => handleSelectCape(cape.Id)}
+                                >
+                                Select
+                                </Button>
+                                <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                    setShowCapesModal(false);
+                                    toast.success("Cape deletion functionality coming soon");
+                                }}
+                                >
+                                Delete
+                                </Button>
+                            </div>
+                            </div>
+                        </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-6">
+                        <p className="text-gray-400">No capes available</p>
+                        </div>
+                    )}
+                    </div>
+            </AlertDialogContent>
+        </AlertDialog>
 
-          <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
               <AlertDialogContent>
                   <AlertDialogTitle>Finish Registration</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -487,7 +499,7 @@ const Home = () => {
                   </div>
                   <AlertDialogAction onClick={handleRegister}>Register</AlertDialogAction>
               </AlertDialogContent>
-          </AlertDialog>
+        </AlertDialog>
       </div>
   );
 };

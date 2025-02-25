@@ -7,31 +7,30 @@ import Navbar from "@/components/shared/navbar";
 export default function AdminDashboard() {
   const router = useRouter();
 
-  // Список страниц для перехода
   const pages = [
     {
-      title: "Управление пользователями",
-      description: "Просмотр и редактирование пользователей",
+      title: "User management",
+      description: "Viewing and editing users",
       path: "/admin/users",
     },
     {
-      title: "Управление скинами",
-      description: "Просмотр и редактирование скинов",
+      title: "Skin management",
+      description: "Viewing and editing skins",
       path: "/admin/skins",
     },
     {
-      title: "Управление плащами",
-      description: "Просмотр и редактирование плащей",
+      title: "Cloak management",
+      description: "Viewing and editing capes",
       path: "/admin/capes",
     },
     {
-      title: "Статистика",
-      description: "Просмотр статистики системы",
+      title: "Statistics",
+      description: "Viewing system statistics",
       path: "/admin/stats",
     },
     {
-      title: "Настройки",
-      description: "Настройки системы",
+      title: "Settings",
+      description: "System settings",
       path: "/admin/settings",
     },
     {
@@ -45,7 +44,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen text-foreground flex flex-col">
       <Navbar />
       <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-8">Админ панель</h1>
+        <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pages.map((page, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow">
@@ -55,7 +54,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Button onClick={() => router.push(page.path)} className="w-full">
-                  Перейти
+                  Go to
                 </Button>
               </CardContent>
             </Card>
