@@ -598,48 +598,7 @@ export default function UserDetails({ params }: { params: { id: string } }) {
                     
                     <Separator className="my-6" />
                     
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Selected Cape
-                        </label>
-                        <Select
-                          value={formData.Selected_Cape || ""}
-                          onValueChange={(value) =>
-                            setFormData({ ...formData, Selected_Cape: value })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a cape" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <div className="p-2">
-                              <Input 
-                                placeholder="Search capes..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="mb-2"
-                              />
-                            </div>
-                            <Separator className="mb-2" />
-                            {userOwnedCapeIds.length > 0 ? (
-                              userOwnedCapeIds.map((capeId) => {
-                                const cape = allCapes.find((c) => c.uuid === capeId);
-                                return (
-                                  <SelectItem key={capeId} value={capeId}>
-                                    {cape?.name || "Unknown Cape"}
-                                  </SelectItem>
-                                );
-                              })
-                            ) : (
-                              <div className="py-2 px-2 text-center text-sm text-muted-foreground">
-                                No capes available
-                              </div>
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
+                    <div className="space-y-6">                    
                       <div className="space-y-2">
                         <label className="text-sm font-medium">
                           User&apos;s Capes
