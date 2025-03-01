@@ -1,0 +1,443 @@
+{
+    "Index":{
+        "welcome": "Welcome to CookieCMS",
+        "desc": "Modern technology and design for creating a minecraft project",
+        "item.one_title": "Easy to Use",
+        "item.one_desc": "Intuitive interface that gets you up and running in minutes",
+        "item.two_title": "Flexible",
+        "item.two_desc": "Customize your website exactly how you want with powerful customization tools",
+        "item.three_title": "Secure",
+        "item.three_desc": "Advanced security measures to protect your content and data"
+    },
+    "Home":{
+        "your_skin": "Your Skin",
+        "Customize": "Customize",
+        "button_one": "Upload New Skin",
+        "button_two": "Select Skin",
+        "button_three": "Select Cape",
+        "select": "Select",
+        "Delete": "Delete",
+        "title_one": "Select a Skin",
+        "title_two": "Select a Cape"
+    },
+    "Settings":{
+        "settings.editusernamer": "Edit Username",
+        "settings.editpassword": "Edit Password",
+        "settings.removediscord": "Remove Discord Link",
+        "settings.changepassword": "Change Email",
+        "input.username": "New username",
+        "input.password": "Password",
+        "input.newpassword": "New Password",
+        "input.oldpassword": "Old Password",
+        "input.newmail": "New email",
+        "title.changeusername": "Change Your Username",
+        "title.changepassword": "Change Your Password",
+        "title.unlinkdiscord": "Unlink Discord Account",
+        "title.changemail": "Change Your Email",
+        "desc.unlinkdiscord": "This will remove the connection between your account and Discord.",
+        "buttons.cancel": "Cancel",
+        "buttons.save": "Save Changes",
+        "buttons.unlinkdiscord": "Confirm Unlink"
+    },
+    "Signin": {
+        "title": "Login an Account",
+        
+        "form.username.label": "Username",
+        "form.username.placeholder": "Username",
+        "form.password.label": "Password",
+        "form.password.placeholder": "Password",
+        
+        "buttons.signin": "Sign In",
+        "buttons.forgot": "Forget Password?",
+        "buttons.discord": "Sign in with Discord",
+        
+        "toast.success": "Successfully signed in!",
+        "toast.error.default": "An unexpected error occurred. Please try again.",
+        "toast.error.discord": "Failed to fetch Discord link.",
+        "toast.error.no_url": "No URL provided.",
+        "toast.error.redirect": "Login successful, but no redirect URL provided.",
+        "toast.error.demo": "Direct login is disabled in demo mode. Please use Discord authentication.",
+        
+        "aria.discord": "Discord authentication button",
+        "aria.loading": "Loading..."
+    },
+    "Signup": {
+        "title": "Create an Account",
+        
+        "form.email.label": "Mail",
+        "form.email.placeholder": "Mail",
+        "form.password.label": "Password",
+        "form.password.placeholder": "Password",
+        "form.confirm.label": "Confirm Password",
+        "form.confirm.placeholder": "Confirm Password",
+        
+        "buttons.signup": "Sign Up",
+        "buttons.discord": "Sign up with Discord",
+        
+        "modal.title": "Registration Successful",
+        "modal.description": "A confirmation email has been sent to {email}. Please check your inbox.",
+        "modal.ok": "OK",
+        
+        "validation.password.length": "Password must be at least 8 characters long.",
+        "validation.password.numbers": "Password cannot consist entirely of numbers.",
+        "validation.password.match": "Passwords do not match",
+        
+        "toast.error.default": "An unexpected error occurred. Please try again.",
+        "toast.error.discord": "Failed to fetch Discord link.",
+        "toast.error.no_url": "No URL provided.",
+        "toast.error.demo": "Direct registration is disabled in demo mode. Please use Discord authentication.",
+        
+        "aria.discord": "Discord authentication button"
+    },
+    "ForgetPass": {
+        "title.request": "Forget Password",
+        "title.reset": "Reset Password",
+        
+        "form.mail.label": "Mail",
+        "form.mail.placeholder": "Mail",
+        "form.password.label": "New Password",
+        "form.password.placeholder": "New Password",
+        "form.confirm.label": "Confirm Password",
+        "form.confirm.placeholder": "Confirm Password",
+        
+        "buttons.send": "Send",
+        "buttons.update": "Update Password",
+        
+        "validation.mail.required": "Please enter your email",
+        "validation.password.length": "Password must be at least 8 characters long.",
+        "validation.password.numbers": "Password cannot consist entirely of numbers.",
+        "validation.password.match": "Passwords do not match",
+        
+        "toast.mail.success": "Reset link sent to your email",
+        "toast.mail.error": "Failed to send reset link",
+        "toast.reset.success": "Password updated successfully",
+        "toast.reset.error": "Failed to update password",
+        "toast.code.invalid": "Invalid or expired reset code",
+        
+        "loading": "Loading..."
+      },
+   "Confirm": {
+        "title": "Account activation",
+        "loading": "Processing your confirmation request...",
+        
+        "alert.success.title": "Success!",
+        "alert.error.title": "Error",
+        
+        "message.success": "Email confirmed successfully",
+        "message.error.default": "An error occurred while confirming your email.",
+        "message.error.unexpected": "An unexpected error occurred. Please try again later.",
+        "message.error.invalid": "Invalid confirmation code.",
+        
+        "button.signin": "Go to Sign In",
+        "button.home": "Return to Home"
+    },
+    "Callback": {
+        "error.code": "Missing authorization code.",
+        "error.auth": "Authentication failed.",
+        "error.user": "User not found.",
+        "error.default": "An error occurred. Please try again.",
+        
+        "dialog.title": "User Not Found",
+        "dialog.description": "User not found, do you want to register or link an account?",
+        
+        "form.username.label": "Username",
+        "form.username.placeholder": "Username",
+        "form.password.label": "Password",
+        "form.password.placeholder": "Password",
+        
+        "button.register": "Register",
+        "button.link": "Link",
+        "button.link_account": "Link Account",
+        "button.back": "Back",
+        
+        "toast.error.data": "User data is missing.",
+        "toast.error.incomplete": "User data is missing or incomplete.",
+        "toast.error.link": "Failed to link account",
+        "toast.error.register": "Registration failed.",
+        
+        "toast.success.register": "Registration successful.",
+        "toast.success.link": "Account linked successfully"
+    },
+    "Admin.Index":{
+        "title": "Admin Panel",
+        "description": "Manage your CookieCMS installation",
+        "stats.total_users": "Total Users",
+        "stats.new_registrations": "New Registrations",
+        "stats.active_skins": "Active Skins",
+        "chart.title": "User Activity",
+        "chart.description": "View registrations and site traffic",
+        "chart.registrations": "Registrations",
+        "chart.traffic": "Site Traffic",
+        "chart.desktop": "Desktop",
+        "chart.mobile": "Mobile",
+        "chart.period": "Last {days} days",
+        "chart.growth": "growth in second half of period",
+        "chart.decline": "decline in second half of period",
+        "chart.view_details": "View Details",
+        "button.users.title": "User management",
+        "button.users.desc": "View and manage user accounts, permissions and roles",
+        "button.skins.title": "Skin management",
+        "button.skins.desc": "Customize themes and visual appearances",
+        "button.settings.title": "Settings",
+        "button.settings.desc": "Configure system parameters and preferences",
+        "button.audit.title": "Audit",
+        "button.audit.desc": "View system logs and user activity history",
+        "button.view_details": "View Details",
+        "button.goto": "Go to"
+    },
+    "Admin.User": {
+        "breadcrumb.admin": "Admin",
+        "breadcrumb.users": "Users",
+        "button.back": "Back to Users",
+        "button.edit": "Edit",
+        "button.save": "Save Changes",
+        "button.cancel": "Cancel",
+        "button.delete": "Delete",
+    
+        "tabs.details": "Details",
+        "tabs.skins": "Skins",
+    
+        "status.verified": "Verified",
+        "status.unverified": "Unverified",
+        "status.user": "User",
+        "status.hd_skins": "HD Skins",
+        "status.admin": "Admin",
+    
+        "card.title": "User Information",
+        "form.username": "Username",
+        "form.uuid": "UUID",
+        "form.email": "Email",
+        "form.permissions": "Permissions",
+        "form.discord_id": "Discord ID",
+        "form.email_verified": "Email Verified",
+        "form.mark_verified": "Mark as verified",
+        "form.user_capes": "User's Capes",
+        "form.search_capes": "Search capes...",
+        "form.no_capes": "No capes match your search",
+        "form.selected_skin": "Selected Skin",
+        "form.select_skin": "Select a skin",
+        "form.no_skins": "No skins available",
+    
+        "loading": "Loading user data...",
+        "error.not_found.title": "User Not Found",
+        "error.not_found.description": "The user you're looking for doesn't exist or has been removed.",
+        
+        "skin.edit.title": "Edit Skin",
+        "skin.edit.name": "Skin Name",
+        "skin.edit.slim": "Slim Model",
+        "skin.edit.cape": "Cape",
+        "skin.edit.select_cape": "Select a cape",
+        "skin.delete.title": "Are you sure?",
+        "skin.delete.description": "This action cannot be undone. This will permanently delete the skin.",
+    
+        "toast.update.loading": "Updating user data...",
+        "toast.update.success": "User updated successfully",
+        "toast.update.error": "Failed to update user data",
+        "toast.skin.update.loading": "Updating skin...",
+        "toast.skin.update.success": "Skin updated successfully",
+        "toast.skin.update.error": "Failed to update skin",
+        "toast.skin.delete.loading": "Deleting skin...",
+        "toast.skin.delete.success": "Skin deleted successfully",
+        "toast.skin.delete.error": "Failed to delete skin"
+    },
+    "Admin.Users": {
+        "title": "User Management",
+        "description": "View, search, and manage user accounts in the system",
+        "search.placeholder": "Search by username, email, ID, UUID, or DSID (e.g., username:admin, id:123)",
+        "show.entries": "Show entries:",
+        
+        "table.id": "ID",
+        "table.username": "Username",
+        "table.dsid": "DSID",
+        "table.email": "Email",
+        "table.verified": "Verified",
+        "table.uuid": "UUID",
+        "table.role": "Role",
+        "table.hwid": "HWID",
+        
+        "badge.verified.yes": "Yes",
+        "badge.verified.no": "No",
+        "badge.na": "N/A",
+        
+        "role.admin": "Admin",
+        "role.hd_skins": "HD Skins",
+        "role.user": "User",
+        
+        "loading.title": "Loading user data...",
+        "empty.title": "No User Data Available",
+        "empty.description": "No users have been found. This could be due to an empty database or filtering criteria.",
+        "empty.action": "Clear Filters",
+        
+        "pagination.showing": "Showing",
+        "pagination.to": "to",
+        "pagination.of": "of",
+        "pagination.entries": "entries",
+        "pagination.prev": "Previous page",
+        "pagination.next": "Next page"
+    },
+    "Admin.Skins": {
+        "breadcrumb.admin": "Admin",
+        "breadcrumb.skins": "Skins Management",
+        
+        "title": "Skins",
+        "button.refresh": "Refresh",
+        "button.upload": "Upload New Skin",
+        
+        "tabs.all": "All Skins",
+        "tabs.hd": "HD Skins",
+        "tabs.slim": "Slim Skins",
+        "tabs.cape": "With Capes",
+        
+        "search.placeholder": "Search skins...",
+        "view.grid": "Grid view",
+        "view.list": "List view",
+        
+        "table.skin": "Skin",
+        "table.ownerid": "Owner ID",
+        "table.properties": "Properties",
+        "table.cape": "Cape",
+        "table.actions": "Actions",
+        
+        "badge.slim": "Slim",
+        "badge.hd": "HD",
+        
+        "empty.title": "No skins found",
+        "empty.description": "We couldn't find any skins matching your search criteria. Please try a different search term.",
+        "empty.action": "Clear search",
+        
+        "skin.edit.title": "Edit Skin",
+        "skin.edit.description": "Make changes to the skin properties below.",
+        "skin.edit.name": "Skin Name",
+        "skin.edit.properties": "Properties",
+        "skin.edit.slim": "Slim model (Alex)",
+        "skin.edit.hd": "HD texture (high resolution)",
+        "skin.edit.cancel": "Cancel",
+        "skin.edit.delete": "Delete Skin",
+        "skin.edit.save": "Save Changes",
+        
+        "skin.delete.title": "Delete Skin",
+        "skin.delete.description": "Are you sure you want to delete this skin? This action cannot be undone.",
+        "skin.delete.cancel": "Cancel",
+        "skin.delete.confirm": "Delete Permanently",
+        
+        "pagination.showing": "Showing {filtered} of {total} skins",
+        "pagination.prev": "Previous",
+        "pagination.next": "Next",
+        
+        "toast.update.success": "Skin updated successfully",
+        "toast.update.error": "Failed to update skin",
+        "toast.delete.success": "Skin deleted successfully",
+        "toast.delete.error": "Failed to delete skin",
+        "toast.load.error": "Failed to load skins"
+    },
+    "Admin.Settings":{
+        "page.title": "Settings",
+        "card.profile.discord": "Discord:",
+        
+        "menu.general.title": "General Settings",
+        "menu.general.description": "Account and security settings",
+        "menu.appearance.title": "Appearance",
+        "menu.appearance.description": "Theme and interface settings",
+        
+        "buttons.edit_username": "Edit Username",
+        "buttons.edit_password": "Edit Password",
+        "buttons.remove_discord": "Remove Discord Link",
+        "buttons.change_email": "Change Email",
+        
+        "dialog.username.title": "Change Your Username",
+        "dialog.username.new": "New username",
+        "dialog.username.password": "Password",
+        "dialog.username.cancel": "Cancel",
+        "dialog.username.save": "Save Changes",
+        "dialog.username.saving": "Updating...",
+        
+        "dialog.password.title": "Change Your Password",
+        "dialog.password.current": "Current password",
+        "dialog.password.new": "New password",
+        "dialog.password.cancel": "Cancel",
+        "dialog.password.save": "Save Changes",
+        "dialog.password.saving": "Updating...",
+        
+        "dialog.discord.title": "Unlink Discord Account",
+        "dialog.discord.password": "Current Password",
+        "dialog.discord.description": "This will remove the connection between your account and Discord.",
+        "dialog.discord.cancel": "Cancel",
+        "dialog.discord.confirm": "Confirm Unlink",
+        "dialog.discord.processing": "Processing...",
+        
+        "dialog.email.title": "Change Your Email",
+        "dialog.email.new": "New email",
+        "dialog.email.password": "Current Password",
+        "dialog.email.cancel": "Cancel",
+        "dialog.email.submit": "Submit",
+        "dialog.email.submitting": "Submitting...",
+        
+        "dialog.verify.title": "Verify Email Change",
+        "dialog.verify.code": "Verification Code",
+        "dialog.verify.password": "Current Password",
+        "dialog.verify.cancel": "Cancel",
+        "dialog.verify.confirm": "Verify",
+        "dialog.verify.verifying": "Verifying...",
+        
+        "toast.demo": "This feature is disabled in demo mode",
+        "toast.username.success": "Username updated successfully!",
+        "toast.username.error": "Failed to update username",
+        "toast.password.success": "Password updated successfully!",
+        "toast.password.error": "Failed to update password",
+        "toast.discord.success": "Discord account unlinked successfully!",
+        "toast.discord.error": "Failed to remove Discord link",
+        "toast.email.success": "Please check your email for the verification code",
+        "toast.email.error": "Failed to request email change",
+        "toast.verify.success": "Email changed successfully!",
+        "toast.verify.error": "Failed to validate email change",
+        
+        "validation.required": "Please fill in all fields",
+        "validation.username.numbers": "Username cannot consist of only numbers",
+        "validation.username.letters": "Username must contain at least one letter",
+        "validation.username.format": "Username must start with an uppercase letter and contain only English letters and numbers",
+        "validation.password.length": "Password must be at least 8 characters long.",
+        "validation.password.numbers": "Password cannot consist entirely of numbers.",
+        "validation.password.chars": "Password must contain at least one non-numeric character."
+        },
+    "Admin.Audit": {
+        "title": "Audit Logs",
+        "description": "View and search system activity logs",
+        
+        "search.placeholder": "Search by ID, issuer, action or use filters (e.g., date:2023-10-01)",
+        "search.entries": "Show entries:",
+        
+        "table.id": "ID",
+        "table.issuer": "Issuer",
+        "table.action": "Action",
+        "table.target": "Target",
+        "table.field": "Field Changed",
+        "table.value": "Value Change",
+        "table.timestamp": "Timestamp",
+        
+        "actions.1": "Registered",
+        "actions.2": "Changed password",
+        "actions.3": "Confirmed Email",
+        "actions.4": "Finished Registration",
+        "actions.5": "Updated username",
+        "actions.6": "Updated password",
+        "actions.7": "Updated email",
+        "actions.8": "Removed Discord",
+        "actions.9": "Linked Discord",
+        "actions.10": "Updated user",
+        "actions.11": "Updated user role",
+
+        "action.types.create": ["1", "4", "9"],
+        "action.types.delete": ["8"],
+        "action.types.update": ["2", "5", "6", "7", "10", "11"],
+        "action.types.auth": ["3"],
+
+        "tooltip.user": "User ID: {id}",
+        "tooltip.old": "Old: {value}",
+        "tooltip.new": "New: {value}",
+        "tooltip.none": "None",
+
+        "pagination.showing": "Showing {start} to {end} of {total} entries",
+        "pagination.prev": "Previous page",
+        "pagination.next": "Next page"
+        }
+    }
