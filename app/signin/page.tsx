@@ -67,7 +67,7 @@ export default function SignIn() {
         const { url } = responseData;
 
         if (jwt) {
-          Cookies.set("cookiecms_cookie", jwt, { expires: 1 });
+          Cookies.set("cookiecms_cookie", jwt, { expires: 1 / 24 });
           toast.success("Successfully signed in!");
 
           if (url) {

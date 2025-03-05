@@ -1,62 +1,161 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/shared/navbar";
-import { TrendingUp, Users, Palette, Settings, FileText, BarChart, Calendar } from "lucide-react";
+import { TrendingUp, Users, Palette, Settings, FileText, BarChart, Calendar, Loader2 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [dateRange, setDateRange] = useState(14);
   const [chartType, setChartType] = useState("registrations");
+  const [fullData, setFullData] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   
-  // Generate a 30-day dataset
-  const generateFullData = () => {
+  // Initial fetch when component mounts
+  useEffect(() => {
+    fetchActivityData();
+  }, []);
+  
+  // Update chart data when date range changes
+  useEffect(() => {
+    if (fullData.length > 0) {
+      // Only show the number of days specified by dateRange
+      const filteredData = fullData.slice(-dateRange);
+      setChartData(filteredData);
+    }
+  }, [dateRange, fullData]);
+  
+  const fetchActivityData = async () => {
+    setIsLoading(true);
+    
+    try {
+      const token = Cookies.get("cookiecms_cookie");
+      
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+      
+      const response = await fetch(
+        `${API_URL}/admin/metrics`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      const result = await response.json();
+      
+      if (!result.error && result.data && result.data.statistics) {
+        // Format dates for chart display
+        const formattedData = result.data.statistics.map((item, index) => {
+          const date = new Date(item.date);
+          
+          // Format the date for display
+          const formattedDay = `${date.getMonth() + 1}/${date.getDate()}`;
+          // More detailed format for tooltip
+          const fullDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          
+          // Cumulative total users calculation
+          const cumulativeUsers = result.data.statistics
+            .slice(0, index + 1)
+            .reduce((sum, stat) => sum + stat.registrations, 0);
+          
+          return {
+            day: formattedDay,
+            fullDay: fullDay,
+            rawDate: item.date,
+            registrations: item.registrations,
+            cumulativeUsers: cumulativeUsers,
+            // If traffic data is missing, set desktop and mobile to 0
+            desktop: item.desktop || 0,
+            mobile: item.mobile || 0
+          };
+        });
+        
+        // Ensure data is sorted chronologically
+        formattedData.sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+        
+        // Store full dataset
+        setFullData(formattedData);
+        
+        // Set initial chart data based on date range
+        setChartData(formattedData.slice(-dateRange));
+      } else {
+        console.error('API error or empty data:', result);
+        fallbackToSampleData();
+      }
+    } catch (error) {
+      console.error('Failed to fetch activity data:', error);
+      fallbackToSampleData();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fallback to sample data in case of API failure
+  const fallbackToSampleData = () => {
     const data = [];
-    for (let i = 1; i <= 30; i++) {
-      // Generate slightly randomized but realistic data
-      const registrations = Math.floor(15 + Math.random() * 25);
-      const desktop = Math.floor(150 + Math.random() * 200);
-      const mobile = Math.floor(100 + Math.random() * 100);
+    const now = new Date();
+    let cumulativeUsers = 0;
+    
+    // Generate 30 days of sample data
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      
+      const day = `${date.getMonth() + 1}/${date.getDate()}`;
+      const fullDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const dailyRegistrations = Math.floor(Math.random() * 10);
+      cumulativeUsers += dailyRegistrations;
       
       data.push({
-        day: `Day ${i}`,
-        registrations,
-        desktop,
-        mobile
+        day: day,
+        fullDay: fullDay,
+        rawDate: date.toISOString().split('T')[0],
+        registrations: dailyRegistrations,
+        cumulativeUsers: cumulativeUsers,
+        desktop: Math.floor(150 + Math.random() * 200),
+        mobile: Math.floor(100 + Math.random() * 100)
       });
     }
-    return data;
+    
+    // Store the full 30 days of data
+    setFullData(data);
+    
+    // Only show the data for the selected date range
+    setChartData(data.slice(-dateRange));
   };
-  
-  const fullDataset = generateFullData();
-  
-  // Get a subset of data based on the dateRange
-  const getFilteredData = () => {
-    return fullDataset.slice(0, dateRange);
-  };
-  
-  const chartData = getFilteredData();
   
   // Calculate total registrations for the selected period
   const totalRegistrations = chartData.reduce((sum, day) => sum + day.registrations, 0);
+  const totalCumulativeUsers = chartData[chartData.length - 1]?.cumulativeUsers || 0;
   
-  // Calculate percentage change by comparing the first and second half of the period
-  const calculateChange = () => {
-    const halfPoint = Math.floor(dateRange / 2);
-    const firstHalf = chartData.slice(0, halfPoint).reduce((sum, day) => sum + day.registrations, 0);
-    const secondHalf = chartData.slice(halfPoint).reduce((sum, day) => sum + day.registrations, 0);
+  // Calculate percentage change by comparing first/second half of the visible chart data
+  const calculateChange = (dataKey) => {
+    if (chartData.length === 0) return 0;
     
-    if (firstHalf === 0) return 0;
+    const halfPoint = Math.floor(chartData.length / 2);
+    const firstHalf = chartData.slice(0, halfPoint).reduce((sum, day) => sum + day[dataKey], 0);
+    const secondHalf = chartData.slice(halfPoint).reduce((sum, day) => sum + day[dataKey], 0);
+    
+    if (firstHalf === 0) return secondHalf > 0 ? 100 : 0;
     return ((secondHalf - firstHalf) / firstHalf * 100).toFixed(1);
   };
   
-  const percentChange = calculateChange();
+  const percentChangeRegistrations = calculateChange('registrations');
+  const percentChangeCumulativeUsers = calculateChange('cumulativeUsers');
   
   const pages = [
     {
@@ -85,14 +184,20 @@ export default function AdminDashboard() {
     },
   ];
 
-  // Summary statistics for the admin overview
+  // Updated summaryStats to include cumulative users
   const summaryStats = [
-    { title: "Total Users", value: "2,845", change: "+12%", icon: <Users className="h-5 w-5" /> },
+    { 
+      title: "Total Users", 
+      value: totalCumulativeUsers.toLocaleString(), 
+      change: `${percentChangeCumulativeUsers > 0 ? '+' : ''}${percentChangeCumulativeUsers}%`, 
+      positive: percentChangeCumulativeUsers >= 0,
+      icon: <Users className="h-5 w-5" /> 
+    },
     { 
       title: "New Registrations", 
       value: totalRegistrations, 
-      change: `${percentChange > 0 ? '+' : ''}${percentChange}%`, 
-      positive: percentChange >= 0,
+      change: `${percentChangeRegistrations > 0 ? '+' : ''}${percentChangeRegistrations}%`, 
+      positive: percentChangeRegistrations >= 0,
       icon: <Users className="h-5 w-5" /> 
     },
     { title: "Active Skins", value: "18", change: "+3", icon: <Palette className="h-5 w-5" /> },
@@ -105,7 +210,6 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <h1 className="text-3xl font-bold">Admin Panel</h1>
           
-          {/* Quick stats overview */}
           <div className="flex flex-wrap gap-4">
             {summaryStats.map((stat, index) => (
               <Card key={index} className="bg-card/50 backdrop-blur">
@@ -129,7 +233,6 @@ export default function AdminDashboard() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Navigation Cards */}
           <div className="lg:col-span-1 space-y-4">
             {pages.map((page, index) => (
               <Card key={index} className="overflow-hidden border border-border/50 hover:border-primary/50 hover:shadow-md transition-all duration-300">
@@ -156,7 +259,6 @@ export default function AdminDashboard() {
             ))}
           </div>
           
-          {/* Right Column - Chart with date range selector */}
           <div className="lg:col-span-2">
             <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300 h-full">
               <CardHeader className="pb-2">
@@ -170,18 +272,17 @@ export default function AdminDashboard() {
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-4">
-                    {/* Chart type selector */}
                     <Select value={chartType} onValueChange={setChartType}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Select view" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="registrations">Registrations</SelectItem>
+                        <SelectItem value="registrations">New Registrations</SelectItem>
+                        <SelectItem value="totalUsers">Total Users</SelectItem>
                         <SelectItem value="traffic">Site Traffic</SelectItem>
                       </SelectContent>
                     </Select>
                     
-                    {/* Period display */}
                     <div className="flex items-center gap-2 bg-muted/40 px-3 py-1 rounded-md text-sm">
                       <Calendar className="h-4 w-4" />
                       <span>Last {dateRange} days</span>
@@ -190,7 +291,6 @@ export default function AdminDashboard() {
                 </div>
               </CardHeader>
               
-              {/* Date range slider */}
               <CardContent className="pt-0 pb-2">
                 <div className="mt-4 mb-2 px-2">
                   <div className="flex justify-between mb-2 text-xs text-muted-foreground">
@@ -207,12 +307,23 @@ export default function AdminDashboard() {
                   />
                 </div>
                 
-                {/* Chart legend */}
                 <div className="flex gap-4 mb-2 px-2">
                   {chartType === "registrations" ? (
+                    <div className="flex gap-4 mb-2 px-2">
                     <div className="flex items-center gap-1.5">
                       <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                      <span className="text-xs">New registrations</span>
+                      <span className="text-xs">New Registrations</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="text-xs">Total Users</span>
+                    </div>
+                  </div>
+                    
+                  ) : chartType === "totalUsers" ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="text-xs">Total Users</span>
                     </div>
                   ) : (
                     <>
@@ -228,95 +339,124 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 
-                {/* Chart */}
                 <div className="h-72 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={chartData}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
-                        </linearGradient>
-                        <linearGradient id="colorDesktop" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
-                        </linearGradient>
-                        <linearGradient id="colorMobile" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.1} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                      <XAxis 
-                        dataKey="day" 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tickMargin={8}
-                        tickFormatter={(value) => value.replace("Day ", "")}
-                        style={{ fontSize: '0.75rem' }}
-                      />
-                      <YAxis hide />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          borderColor: 'hsl(var(--border))',
-                          borderRadius: '0.5rem',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                        }}
-                        formatter={(value, name) => {
-                          const label = name === 'registrations' ? 'users' : 'visits';
-                          return [`${value} ${label}`, undefined];
-                        }}
-                        labelFormatter={(label) => `Day ${label.replace("Day ", "")}`}
-                      />
-                      
-                      {chartType === "registrations" ? (
-                        <Area 
-                          type="monotone" 
-                          dataKey="registrations" 
-                          stroke="#10b981" 
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#colorRegistrations)"
+                  {isLoading ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={chartData}
+                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+                          </linearGradient>
+                          <linearGradient id="colorDesktop" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                          </linearGradient>
+                          <linearGradient id="colorMobile" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                        <XAxis 
+                          dataKey="day" 
+                          tickLine={false} 
+                          axisLine={false} 
+                          tickMargin={8}
+                          style={{ fontSize: '0.75rem' }}
+                          minTickGap={5}
                         />
-                      ) : (
-                        <>
-                          <Area 
-                            type="monotone" 
-                            dataKey="desktop" 
-                            stroke="hsl(var(--primary))" 
-                            strokeWidth={2}
-                            fillOpacity={1}
-                            fill="url(#colorDesktop)"
-                          />
-                          <Area 
-                            type="monotone" 
-                            dataKey="mobile" 
-                            stroke="#60a5fa" 
-                            strokeWidth={2}
-                            fillOpacity={1}
-                            fill="url(#colorMobile)"
-                          />
-                        </>
-                      )}
-                    </AreaChart>
-                  </ResponsiveContainer>
+                        <YAxis hide />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            borderColor: 'hsl(var(--border))',
+                            borderRadius: '0.5rem',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                          formatter={(value, name) => {
+                            const label = name === 'registrations' ? 'users' : 'visits';
+                            return [`${value} ${label}`, undefined];
+                          }}
+                          labelFormatter={(_, data) => data[0]?.payload?.fullDay || ""}
+                        />
+                        
+                        {chartType === "registrations" ? (
+                          <>
+                            <Area 
+                              type="monotone" 
+                              dataKey="registrations" 
+                              stroke="#10b981" 
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#colorRegistrations)"
+                              name="New Registrations"
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="cumulativeUsers" 
+                              stroke="#3b82f6" 
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#colorCumulativeUsers)"
+                              name="Total Users"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Area 
+                              type="monotone" 
+                              dataKey="desktop" 
+                              stroke="hsl(var(--primary))" 
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#colorDesktop)"
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="mobile" 
+                              stroke="#60a5fa" 
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#colorMobile)"
+                            />
+                          </>
+                        )}
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </CardContent>
               
               <CardFooter className="border-t border-border/50 bg-muted/20">
                 <div className="flex w-full items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className={`flex items-center gap-1 font-medium ${percentChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      <TrendingUp className="h-4 w-4" />
-                      {percentChange}%
-                    </div>
-                    <div className="text-muted-foreground">
-                      {percentChange >= 0 ? 'growth' : 'decline'} in second half of period
-                    </div>
+                  <div className={`flex items-center gap-1 font-medium ${
+                    chartType === "registrations" 
+                      ? (percentChangeRegistrations >= 0 ? 'text-green-500' : 'text-red-500')
+                      : chartType === "totalUsers"
+                        ? (percentChangeCumulativeUsers >= 0 ? 'text-green-500' : 'text-red-500')
+                        : (percentChangeRegistrations >= 0 ? 'text-green-500' : 'text-red-500') // Default to registrations for traffic
+                  }`}>
+                    <TrendingUp className="h-4 w-4" />
+                    {chartType === "registrations" 
+                      ? percentChangeRegistrations
+                      : chartType === "totalUsers" 
+                        ? percentChangeCumulativeUsers 
+                        : percentChangeRegistrations}%
+                  </div>
+                  <div className="text-muted-foreground">
+                    {chartType === "registrations" 
+                      ? (percentChangeRegistrations >= 0 ? 'growth' : 'decline')
+                      : chartType === "totalUsers" 
+                        ? (percentChangeCumulativeUsers >= 0 ? 'growth' : 'decline')
+                        : (percentChangeRegistrations >= 0 ? 'growth' : 'decline')} in second half of period
                   </div>
                   <Button 
                     variant="outline" 

@@ -99,6 +99,11 @@ export default function UserDetails({ params }: { params: { id: string } }) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
+    const cookie = Cookies.get("cookiecms_cookie");
+    if (!cookie) {
+        window.location.href = "/";
+        return;
+    }
     const fetchData = async () => {
       const token = Cookies.get("cookiecms_cookie");
 
